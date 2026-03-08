@@ -1,0 +1,17 @@
+docker exec -it notes-postgres psql -U postgres
+
+\l
+
+\c notesdb
+
+\dt     # show all tables
+
+then query
+SELECT * FROM users;
+
+
+___________
+
+docker-compose down
+
+docker-compose up --build -d
