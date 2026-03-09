@@ -1,6 +1,5 @@
 package com.notes.notesmarketplace.config;
 
-import com.notes.notesmarketplace.service.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final UserDetailsServiceImpl userDetailsService;
     private final CustomAuthenticationSuccessHandler successHandler;
 
     @Bean
@@ -37,6 +35,9 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
+                .headers(headers -> headers
+                .frameOptions(frame -> frame.sameOrigin())
+                )
                 .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/login", "/register", "/api/auth/**", "/hello").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
