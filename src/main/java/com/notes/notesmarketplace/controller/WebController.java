@@ -93,6 +93,16 @@ public class WebController {
         return "seller-dashboard";
     }
 
+    @GetMapping("/seller/notes")
+    public String sellerNotes() {
+        return "seller-notes";
+    }
+
+    @GetMapping("/seller/upload-note")
+    public String sellerUploadNote() {
+        return "seller-upload-note";
+    }
+
     @GetMapping("/buyer/dashboard")
     public String buyerDashboard() {
         return "buyer-dashboard";
