@@ -2,6 +2,7 @@ package com.notes.notesmarketplace.service.impl;
 
 import com.notes.notesmarketplace.dto.NoteUpdateRequest;
 import com.notes.notesmarketplace.dto.NoteUploadRequest;
+import com.notes.notesmarketplace.dto.NoteDto;
 import com.notes.notesmarketplace.model.Note;
 import com.notes.notesmarketplace.model.User;
 import com.notes.notesmarketplace.repository.NoteRepository;
@@ -9,6 +10,7 @@ import com.notes.notesmarketplace.repository.UserRepository;
 import com.notes.notesmarketplace.service.CloudinaryService;
 import com.notes.notesmarketplace.service.NoteService;
 
+import com.notes.notesmarketplace.service.PdfPreviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,7 @@ public class NoteServiceImpl implements NoteService {
     private final NoteRepository noteRepository;
     private final UserRepository userRepository;
     private final CloudinaryService cloudinaryService;
+    private final PdfPreviewService pdfPreviewService;
 
     @Override
     public Note uploadNote(NoteUploadRequest request, String sellerEmail) {
@@ -32,6 +35,12 @@ public class NoteServiceImpl implements NoteService {
         User seller = userRepository.findByEmail(sellerEmail)
                 .orElseThrow(() -> new RuntimeException("Seller not found"));
 
+        // 1️⃣ Generate preview image from PDF
+        byte[] previewBytes = pdfPreviewService.generateFirstPagePreview(request.getFile());
+
+        // 2️⃣ Upload preview image to Cloudinary
+        String previewUrl = cloudinaryService.uploadImage(previewBytes);
+
         String pdfUrl = cloudinaryService.uploadPdf(request.getFile());
 
         Note note = Note.builder()
@@ -40,6 +49,7 @@ public class NoteServiceImpl implements NoteService {
                 .category(request.getCategory())
                 .price(request.getPrice())
                 .pdfUrl(pdfUrl)
+                .previewImageUrl(previewUrl)
                 .seller(seller)
                 .build();
 
@@ -96,4 +106,55 @@ public class NoteServiceImpl implements NoteService {
         // Then delete from database
         noteRepository.delete(note);
     }
+
+    @Override
+    public List<NoteDto> browseNotes() {
+
+        return noteRepository.findAll()
+                .stream()
+                .map(this::mapToDTO)
+                .toList();
+    }
+
+    @Override
+    public List<NoteDto> searchNotes(String keyword) {
+
+        return noteRepository
+                .findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword)
+                .stream()
+                .map(this::mapToDTO)
+                .toList();
+    }
+
+    @Override
+    public List<NoteDto> filterNotes(String category) {
+
+        return noteRepository
+                .findByCategoryIgnoreCase(category)
+                .stream()
+                .map(this::mapToDTO)
+                .toList();
+    }
+
+    @Override
+    public NoteDto getNote(Long id) {
+
+        Note note = noteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Note not found"));
+
+        return mapToDTO(note);
+    }
+
+    private NoteDto mapToDTO(Note note) {
+
+        return NoteDto.builder()
+                .id(note.getId())
+                .title(note.getTitle())
+                .description(note.getDescription())
+                .category(note.getCategory())
+                .price(note.getPrice())
+                .previewImageUrl(note.getPreviewImageUrl())
+                .build();
+    }
+
 }

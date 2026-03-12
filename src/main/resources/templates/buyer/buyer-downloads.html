@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Notes - Notes Marketplace</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar-brand {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+        }
+        .navbar-menu {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .nav-link {
+            color: #333;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .nav-link:hover {
+            background: #f0f0f0;
+        }
+        .logout-btn {
+            padding: 8px 20px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .header-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .header-section h1 {
+            color: #667eea;
+            font-size: 36px;
+        }
+        .header-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+        .downloads-list {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        .download-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            transition: background 0.3s;
+        }
+        .download-item:last-child {
+            border-bottom: none;
+        }
+        .download-item:hover {
+            background: #f8f9fa;
+        }
+        .note-preview-thumb {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            flex-shrink: 0;
+        }
+        .note-preview-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .note-info {
+            flex: 1;
+        }
+        .note-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .note-category {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .note-description {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-top: 5px;
+        }
+        .note-price {
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 5px;
+        }
+        .download-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .action-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+            text-decoration: none;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .preview-btn {
+            background: #3498db;
+            color: white;
+        }
+        .preview-btn:hover {
+            background: #2980b9;
+        }
+        .download-btn {
+            background: #27ae60;
+            color: white;
+        }
+        .download-btn:hover {
+            background: #229954;
+        }
+        .loading, .no-downloads {
+            text-align: center;
+            padding: 50px;
+            color: white;
+            font-size: 20px;
+        }
+        .no-downloads {
+            background: white;
+            border-radius: 15px;
+        }
+        .no-downloads h2 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .no-downloads p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        .browse-link {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/buyer/dashboard" class="navbar-brand">📚 Notes Marketplace</a>
+        <div class="navbar-menu">
+            <a href="/buyer/dashboard" class="nav-link">Dashboard</a>
+            <a href="/buyer/browse" class="nav-link">Browse</a>
+            <a href="/buyer/orders" class="nav-link">Orders</a>
+            <a href="/buyer/my-downloads" class="nav-link">My Notes</a>
+            <form th:action="@{/logout}" method="post" style="margin: 0;">
+                <button type="submit" class="logout-btn">Logout</button>
+            </form>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header-section">
+            <div class="header-icon">�</div>
+            <h1>My Notes</h1>
+        </div>
+
+        <div id="loading" class="loading">Loading your purchased notes...</div>
+        
+        <div id="downloadsContainer" class="downloads-list" style="display: none;"></div>
+        
+        <div id="noDownloads" class="no-downloads" style="display: none;">
+            <h2>No Purchased Notes Yet</h2>
+            <p>You haven't purchased any notes yet. Start browsing to find quality notes!</p>
+            <a href="/buyer/browse" class="browse-link">Browse Notes</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', loadDownloads);
+
+        async function loadDownloads() {
+            document.getElementById('loading').style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/buyer/my-downloads');
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch downloads: ' + response.status);
+                }
+                
+                const notes = await response.json();
+                console.log('Downloaded notes loaded:', notes.length, notes);
+
+                document.getElementById('loading').style.display = 'none';
+
+                if (notes.length === 0) {
+                    document.getElementById('noDownloads').style.display = 'block';
+                } else {
+                    displayDownloads(notes);
+                }
+            } catch (error) {
+                console.error('Error loading downloads:', error);
+                document.getElementById('loading').textContent = 'Error loading downloads: ' + error.message;
+                document.getElementById('loading').style.color = '#e74c3c';
+            }
+        }
+
+        function displayDownloads(notes) {
+            const container = document.getElementById('downloadsContainer');
+            container.innerHTML = '';
+            container.style.display = 'block';
+
+            notes.forEach(note => {
+                const item = document.createElement('div');
+                item.className = 'download-item';
+                item.innerHTML = `
+                    <div class="note-preview-thumb">
+                        ${note.previewImageUrl ? 
+                            `<img src="${note.previewImageUrl}" alt="${note.title}">` : 
+                            '📄'}
+                    </div>
+                    <div class="note-info">
+                        <div class="note-title">${note.title}</div>
+                        <span class="note-category">${note.category || 'Uncategorized'}</span>
+                        <div class="note-description">${note.description || 'No description'}</div>
+                        <div class="note-price">৳${note.price}</div>
+                    </div>
+                    <div class="download-actions">
+                        <button class="action-btn preview-btn" onclick="viewPdf(${note.id})">
+                            👁️ View PDF
+                        </button>
+                        <button class="action-btn download-btn" onclick="downloadPdf(${note.id}, '${note.title}')">
+                            📥 Download
+                        </button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        async function viewPdf(noteId) {
+            try {
+                // Open PDF directly - backend will serve it with inline disposition
+                window.open(`/api/buyer/notes/${noteId}/full-preview`, '_blank');
+            } catch (error) {
+                console.error('Error viewing PDF:', error);
+                alert('Error viewing PDF. Please try again.');
+            }
+        }
+
+        async function downloadPdf(noteId, title) {
+            try {
+                // Open download endpoint - backend will serve it with attachment disposition
+                window.location.href = `/api/buyer/notes/${noteId}/download`;
+            } catch (error) {
+                console.error('Error downloading PDF:', error);
+                alert('Error downloading PDF. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>

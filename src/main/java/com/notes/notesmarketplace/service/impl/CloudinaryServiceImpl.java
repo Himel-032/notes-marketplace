@@ -88,4 +88,27 @@ public class CloudinaryServiceImpl implements CloudinaryService {
             return null;
         }
     }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public String uploadImage(byte[] imageBytes) {
+
+        try {
+
+            Map<String, Object> uploadResult = cloudinary.uploader().upload(
+                    imageBytes,
+                    ObjectUtils.asMap(
+                            "resource_type", "image",
+                            "folder", "notes_preview"
+                    )
+            );
+
+            return uploadResult.get("secure_url").toString();
+
+        } catch (Exception e) {
+
+            throw new RuntimeException("Failed to upload preview image");
+
+        }
+    }
 }

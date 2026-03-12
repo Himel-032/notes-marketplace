@@ -40,9 +40,13 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/", "/login", "/register", "/api/auth/**", "/hello").permitAll()
+                .requestMatchers("/api/payment/success", "/api/payment/fail", "/api/payment/cancel").permitAll()
+                .requestMatchers("/payment/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/seller/**").hasRole("SELLER")
                 .requestMatchers("/buyer/**").hasRole("BUYER")
+                .requestMatchers("/api/buyer/**").hasAnyRole("BUYER", "ADMIN")
+                .requestMatchers("/api/payment/**").hasAnyRole("BUYER", "ADMIN")
                 .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

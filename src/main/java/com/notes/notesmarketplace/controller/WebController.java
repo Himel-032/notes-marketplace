@@ -29,12 +29,12 @@ public class WebController {
 
     @GetMapping("/login")
     public String login() {
-        return "login";
+        return "auth/login";
     }
 
     @GetMapping("/register")
     public String registerPage() {
-        return "register";
+        return "auth/register";
     }
 
     @PostMapping("/register")
@@ -47,19 +47,19 @@ public class WebController {
             // Prevent ADMIN registration through form
             if ("ADMIN".equalsIgnoreCase(role)) {
                 model.addAttribute("error", "Admin registration is not allowed!");
-                return "register";
+                return "auth/register";
             }
 
             // Check if email already exists
             if (userRepository.findByEmail(email).isPresent()) {
                 model.addAttribute("error", "Email already registered!");
-                return "register";
+                return "auth/register";
             }
 
             // Validate role is only BUYER or SELLER
             if (!"BUYER".equals(role) && !"SELLER".equals(role)) {
                 model.addAttribute("error", "Invalid role selected!");
-                return "register";
+                return "auth/register";
             }
 
             // Find role
@@ -79,32 +79,62 @@ public class WebController {
             return "redirect:/login?registered=true";
         } catch (Exception e) {
             model.addAttribute("error", "Registration failed: " + e.getMessage());
-            return "register";
+            return "auth/register";
         }
     }
 
     @GetMapping("/admin/dashboard")
     public String adminDashboard() {
-        return "admin-dashboard";
+        return "admin/admin-dashboard";
     }
 
     @GetMapping("/seller/dashboard")
     public String sellerDashboard() {
-        return "seller-dashboard";
+        return "seller/seller-dashboard";
     }
 
     @GetMapping("/seller/notes")
     public String sellerNotes() {
-        return "seller-notes";
+        return "seller/seller-notes";
     }
 
     @GetMapping("/seller/upload-note")
     public String sellerUploadNote() {
-        return "seller-upload-note";
+        return "seller/seller-upload-note";
     }
 
     @GetMapping("/buyer/dashboard")
     public String buyerDashboard() {
-        return "buyer-dashboard";
+        return "buyer/buyer-dashboard";
+    }
+
+    @GetMapping("/buyer/browse")
+    public String buyerBrowse() {
+        return "buyer/buyer-browse";
+    }
+
+    @GetMapping("/buyer/my-downloads")
+    public String buyerDownloads() {
+        return "buyer/buyer-downloads";
+    }
+
+    @GetMapping("/buyer/orders")
+    public String buyerOrders() {
+        return "buyer/buyer-orders";
+    }
+
+    @GetMapping("/payment/success")
+    public String paymentSuccess() {
+        return "payment/payment-success";
+    }
+
+    @GetMapping("/payment/failed")
+    public String paymentFailed() {
+        return "payment/payment-failed";
+    }
+
+    @GetMapping("/payment/cancelled")
+    public String paymentCancelled() {
+        return "payment/payment-cancelled";
     }
 }

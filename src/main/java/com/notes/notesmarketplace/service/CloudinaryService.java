@@ -6,6 +6,8 @@ public interface CloudinaryService {
 
     String uploadPdf(MultipartFile file);
 
+    String uploadImage(byte[] imageBytes);
+
     void deletePdf(String pdfUrl);
 
 }
