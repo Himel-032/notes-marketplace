@@ -26,3 +26,11 @@ cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME}
   api-key: ${CLOUDINARY_API_KEY}
   api-secret: ${CLOUDINARY_API_SECRET}
+
+sslcommerz:
+  store-id: ${SSLCOMMERZ_STORE_ID}
+  store-password: ${SSLCOMMERZ_STORE_PASSWORD}
+  base-url: ${SSLCOMMERZ_BASE_URL}
+  success-url: ${SSLCOMMERZ_SUCCESS_URL}
+  fail-url: ${SSLCOMMERZ_FAIL_URL}
+  cancel-url: ${SSLCOMMERZ_CANCEL_URL}
