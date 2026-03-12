@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Notes - Notes Marketplace</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding-bottom: 50px;
+        }
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar-brand {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+        }
+        .navbar-menu {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .nav-link {
+            color: #333;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .nav-link:hover {
+            background: #f0f0f0;
+        }
+        .logout-btn {
+            padding: 8px 20px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .header-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .header-section h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        .search-filters {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+            padding: 12px 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .filter-select {
+            padding: 12px 20px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            background: white;
+        }
+        .search-btn, .clear-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .search-btn {
+            background: #667eea;
+            color: white;
+        }
+        .search-btn:hover {
+            background: #5568d3;
+        }
+        .clear-btn {
+            background: #95a5a6;
+            color: white;
+        }
+        .clear-btn:hover {
+            background: #7f8c8d;
+        }
+        .notes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 25px;
+        }
+        .note-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .note-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .note-preview {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #999;
+            font-size: 48px;
+        }
+        .note-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .note-content {
+            padding: 20px;
+        }
+        .note-category {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .note-title {
+            color: #333;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .note-description {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            max-height: 60px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .note-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        .note-price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #27ae60;
+        }
+        .buy-btn {
+            padding: 10px 25px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .buy-btn:hover {
+            background: #229954;
+        }
+        .buy-btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+        .purchased-badge {
+            background: #27ae60;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: white;
+            font-size: 20px;
+        }
+        .no-results {
+            background: white;
+            padding: 50px;
+            border-radius: 15px;
+            text-align: center;
+            color: #666;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-close {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #999;
+        }
+        .modal-close:hover {
+            color: #333;
+        }
+        .modal-preview {
+            width: 100%;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/buyer/dashboard" class="navbar-brand">📚 Notes Marketplace</a>
+        <div class="navbar-menu">
+            <a href="/buyer/dashboard" class="nav-link">Dashboard</a>
+            <a href="/buyer/browse" class="nav-link">Browse</a>
+            <a href="/buyer/orders" class="nav-link">Orders</a>
+            <a href="/buyer/my-downloads" class="nav-link">My Notes</a>
+            <form th:action="@{/logout}" method="post" style="margin: 0;">
+                <button type="submit" class="logout-btn">Logout</button>
+            </form>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header-section">
+            <h1>📚 Browse Notes</h1>
+            <div class="search-filters">
+                <input type="text" id="searchInput" class="search-box" placeholder="Search by title or description...">
+                <select id="categoryFilter" class="filter-select">
+                    <option value="">All Categories</option>
+                    <option value="Computer Science">Computer Science</option>
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Physics">Physics</option>
+                    <option value="Chemistry">Chemistry</option>
+                    <option value="Biology">Biology</option>
+                    <option value="Engineering">Engineering</option>
+                    <option value="Business">Business</option>
+                    <option value="Other">Other</option>
+                </select>
+                <button class="search-btn" onclick="loadNotes()">Search</button>
+                <button class="clear-btn" onclick="clearFilters()">Clear</button>
+            </div>
+        </div>
+
+        <div id="loading" class="loading">Loading notes...</div>
+        <div id="notesContainer" class="notes-grid" style="display: none;"></div>
+        <div id="noResults" class="no-results" style="display: none;">
+            <h2>No notes found</h2>
+            <p>Try adjusting your search or filters</p>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Note Title</h2>
+            <div id="modalCategory" class="note-category" style="margin: 10px 0;"></div>
+            <img id="modalPreview" class="modal-preview" src="" alt="Preview">
+            <p id="modalDescription" style="color: #666; margin: 20px 0;"></p>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+                <div id="modalPrice" class="note-price"></div>
+                <button id="modalBuyBtn" class="buy-btn" onclick="buyNote()">Buy Now</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentNoteId = null;
+        let purchasedNotes = new Set();
+
+        // Load notes on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadPurchasedNotes();
+            await loadNotes();
+        });
+
+        async function loadPurchasedNotes() {
+            try {
+                const response = await fetch('/api/buyer/my-downloads');
+                
+                if (!response.ok) {
+                    console.error('Failed to fetch purchased notes:', response.status);
+                    return;
+                }
+                
+                const notes = await response.json();
+                purchasedNotes = new Set(notes.map(note => note.id));
+                console.log('Purchased notes loaded:', purchasedNotes.size, 'IDs:', Array.from(purchasedNotes));
+            } catch (error) {
+                console.error('Error loading purchased notes:', error);
+            }
+        }
+
+        async function loadNotes() {
+            const searchKeyword = document.getElementById('searchInput').value.trim();
+            const category = document.getElementById('categoryFilter').value;
+
+            let url = '/api/buyer/notes';
+            
+            if (searchKeyword) {
+                url = `/api/buyer/notes/search?keyword=${encodeURIComponent(searchKeyword)}`;
+            } else if (category) {
+                url = `/api/buyer/notes/filter?category=${encodeURIComponent(category)}`;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('notesContainer').style.display = 'none';
+            document.getElementById('noResults').style.display = 'none';
+
+            try {
+                const response = await fetch(url);
+                const notes = await response.json();
+
+                document.getElementById('loading').style.display = 'none';
+
+                if (notes.length === 0) {
+                    document.getElementById('noResults').style.display = 'block';
+                } else {
+                    displayNotes(notes);
+                }
+            } catch (error) {
+                console.error('Error loading notes:', error);
+                document.getElementById('loading').textContent = 'Error loading notes. Please try again.';
+            }
+        }
+
+        function displayNotes(notes) {
+            const container = document.getElementById('notesContainer');
+            container.innerHTML = '';
+            container.style.display = 'grid';
+
+            console.log('Displaying', notes.length, 'notes');
+
+            notes.forEach(note => {
+                const isPurchased = purchasedNotes.has(note.id);
+                console.log('Note', note.id, '- Purchased:', isPurchased);
+                
+                const card = document.createElement('div');
+                card.className = 'note-card';
+                card.innerHTML = `
+                    <div class="note-preview">
+                        ${note.previewImageUrl ? 
+                            `<img src="${note.previewImageUrl}" alt="${note.title}">` : 
+                            '📄'}
+                    </div>
+                    <div class="note-content">
+                        <span class="note-category">${note.category || 'Uncategorized'}</span>
+                        <div class="note-title">${note.title}</div>
+                        <div class="note-description">${note.description || 'No description'}</div>
+                        <div class="note-footer">
+                            <div class="note-price">৳${note.price}</div>
+                            ${isPurchased ? 
+                                '<span class="purchased-badge">✓ Purchased</span>' :
+                                `<button class="buy-btn" onclick="showPreview(${note.id})">Preview & Buy</button>`
+                            }
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        async function showPreview(noteId) {
+            // Check if already purchased
+            if (purchasedNotes.has(noteId)) {
+                alert('You have already purchased this note. Check "My Downloads" page.');
+                return;
+            }
+            
+            currentNoteId = noteId;
+            
+            try {
+                const response = await fetch(`/api/buyer/notes/${noteId}/preview`);
+                const data = await response.json();
+
+                document.getElementById('modalTitle').textContent = data.title;
+                document.getElementById('modalCategory').textContent = data.category || 'Uncategorized';
+                document.getElementById('modalDescription').textContent = data.description || 'No description';
+                document.getElementById('modalPrice').textContent = `৳${data.price}`;
+                document.getElementById('modalPreview').src = data.previewImageUrl || '';
+
+                document.getElementById('previewModal').classList.add('active');
+            } catch (error) {
+                console.error('Error loading preview:', error);
+                alert('Error loading preview');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('previewModal').classList.remove('active');
+            currentNoteId = null;
+        }
+
+        async function buyNote() {
+            if (!currentNoteId) return;
+
+            // Double check if already purchased
+            if (purchasedNotes.has(currentNoteId)) {
+                alert('You have already purchased this note!');
+                closeModal();
+                return;
+            }
+
+            const buyBtn = document.getElementById('modalBuyBtn');
+            buyBtn.disabled = true;
+            buyBtn.textContent = 'Processing...';
+
+            try {
+                const response = await fetch('/api/payment/pay', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ noteId: currentNoteId })
+                });
+
+                const gatewayUrl = await response.text();
+                
+                // Redirect to SSLCommerz payment gateway
+                window.location.href = gatewayUrl;
+            } catch (error) {
+                console.error('Error initiating payment:', error);
+                alert('Error initiating payment. Please try again.');
+                buyBtn.disabled = false;
+                buyBtn.textContent = 'Buy Now';
+            }
+        }
+
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('categoryFilter').value = '';
+            loadNotes();
+        }
+
+        // Close modal on outside click
+        window.onclick = function(event) {
+            const modal = document.getElementById('previewModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // Search on Enter key
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                loadNotes();
+            }
+        });
+
+        // Reload purchased notes when page becomes visible (user returns from payment)
+        document.addEventListener('visibilitychange', async () => {
+            if (!document.hidden) {
+                await loadPurchasedNotes();
+                await loadNotes();
+            }
+        });
+    </script>
+</body>
+</html>

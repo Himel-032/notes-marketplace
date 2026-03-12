@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders - Notes Marketplace</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar-brand {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+            text-decoration: none;
+        }
+        .navbar-menu {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .nav-link {
+            color: #333;
+            text-decoration: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .nav-link:hover {
+            background: #f0f0f0;
+        }
+        .logout-btn {
+            padding: 8px 20px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        .header-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .header-section h1 {
+            color: #667eea;
+            font-size: 36px;
+        }
+        .header-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .summary-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .summary-number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .summary-label {
+            color: #666;
+            font-size: 14px;
+        }
+        .orders-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            padding: 30px;
+        }
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .orders-table thead {
+            background: #667eea;
+            color: white;
+        }
+        .orders-table th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        .orders-table td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .orders-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-paid {
+            background: #27ae60;
+            color: white;
+        }
+        .status-pending {
+            background: #f39c12;
+            color: white;
+        }
+        .status-failed {
+            background: #e74c3c;
+            color: white;
+        }
+        .loading, .no-orders {
+            text-align: center;
+            padding: 50px;
+            color: white;
+            font-size: 20px;
+        }
+        .no-orders {
+            background: white;
+            border-radius: 15px;
+            color: #666;
+        }
+        .no-orders h2 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .browse-link {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+        .transaction-id {
+            font-family: monospace;
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <a href="/buyer/dashboard" class="navbar-brand">📚 Notes Marketplace</a>
+        <div class="navbar-menu">
+            <a href="/buyer/dashboard" class="nav-link">Dashboard</a>
+            <a href="/buyer/browse" class="nav-link">Browse</a>
+            <a href="/buyer/orders" class="nav-link">Orders</a>
+            <a href="/buyer/my-downloads" class="nav-link">My Notes</a>
+            <form th:action="@{/logout}" method="post" style="margin: 0;">
+                <button type="submit" class="logout-btn">Logout</button>
+            </form>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header-section">
+            <div class="header-icon">📋</div>
+            <h1>My Orders</h1>
+        </div>
+
+        <div class="summary-cards">
+            <div class="summary-card">
+                <div class="summary-number" id="totalOrders">0</div>
+                <div class="summary-label">Total Orders</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-number" id="totalAmount">৳0</div>
+                <div class="summary-label">Total Amount</div>
+            </div>
+        </div>
+
+        <div id="loading" class="loading">Loading orders...</div>
+        
+        <div id="ordersContainer" class="orders-container" style="display: none;">
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Transaction ID</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Items</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersBody">
+                </tbody>
+            </table>
+        </div>
+        
+        <div id="noOrders" class="no-orders" style="display: none;">
+            <h2>No Orders Yet</h2>
+            <p>You haven't placed any orders yet. Start shopping for quality notes!</p>
+            <a href="/buyer/browse" class="browse-link">Browse Notes</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', loadOrders);
+
+        async function loadOrders() {
+            document.getElementById('loading').style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/buyer/my-orders');
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch orders: ' + response.status);
+                }
+                
+                const orders = await response.json();
+                console.log('Orders loaded:', orders.length, orders);
+
+                document.getElementById('loading').style.display = 'none';
+
+                if (orders.length === 0) {
+                    document.getElementById('noOrders').style.display = 'block';
+                } else {
+                    displayOrders(orders);
+                    updateSummary(orders);
+                }
+            } catch (error) {
+                console.error('Error loading orders:', error);
+                document.getElementById('loading').textContent = 'Error loading orders: ' + error.message;
+                document.getElementById('loading').style.color = '#e74c3c';
+            }
+        }
+
+        function displayOrders(orders) {
+            const container = document.getElementById('ordersContainer');
+            const tbody = document.getElementById('ordersBody');
+            tbody.innerHTML = '';
+            container.style.display = 'block';
+
+            orders.forEach(order => {
+                const row = document.createElement('tr');
+                
+                const date = new Date(order.createdAt);
+                const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                
+                let statusClass = 'status-paid';
+                if (order.status === 'PENDING') statusClass = 'status-pending';
+                if (order.status === 'FAILED') statusClass = 'status-failed';
+                
+                row.innerHTML = `
+                    <td><strong>#${order.id}</strong></td>
+                    <td><span class="transaction-id">${order.transactionId || 'N/A'}</span></td>
+                    <td>${formattedDate}</td>
+                    <td><strong>৳${order.totalPrice}</strong></td>
+                    <td><span class="status-badge ${statusClass}">${order.status}</span></td>
+                    <td>1 item</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateSummary(orders) {
+            const totalOrders = orders.length;
+            const totalAmount = orders.reduce((sum, order) => sum + order.totalPrice, 0);
+
+            document.getElementById('totalOrders').textContent = totalOrders;
+            document.getElementById('totalAmount').textContent = '৳' + totalAmount.toFixed(2);
+        }
+    </script>
+</body>
+</html>
