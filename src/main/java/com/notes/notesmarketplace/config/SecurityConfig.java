@@ -43,6 +43,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/payment/success", "/api/payment/fail", "/api/payment/cancel").permitAll()
                 .requestMatchers("/payment/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/seller/**").hasRole("SELLER")
                 .requestMatchers("/buyer/**").hasRole("BUYER")
                 .requestMatchers("/api/buyer/**").hasAnyRole("BUYER", "ADMIN")

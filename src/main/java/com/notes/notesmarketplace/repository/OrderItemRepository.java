@@ -9,6 +9,8 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
 
     boolean existsByOrderBuyerIdAndNoteId(Long buyerId, Long noteId);
 
+    boolean existsByNoteId(Long noteId);
+
     List<OrderItem> findByOrderBuyerId(Long buyerId);
 
 }
