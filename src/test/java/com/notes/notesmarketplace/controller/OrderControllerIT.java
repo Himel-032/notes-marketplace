@@ -15,6 +15,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Transactional
 class OrderControllerIT {
 
     @Autowired
@@ -54,8 +56,8 @@ class OrderControllerIT {
         doNothing().when(paymentService).removePendingPayment("TRX-100");
 
         mockMvc.perform(post("/api/payment/success")
-                        .param("tran_id", "TRX-100")
-                        .param("status", "VALID"))
+                .param("tran_id", "TRX-100")
+                .param("status", "VALID"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/payment/success?tran_id=TRX-100"));
 
@@ -75,5 +77,12 @@ class OrderControllerIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(77L))
                 .andExpect(jsonPath("$[0].transactionId").value("TRX-77"));
+    }
+
+    @Test
+    @WithMockUser(username = "seller@mail.com", roles = {"SELLER"})
+    void accessOtherUsersOrder_shouldReturnForbidden() throws Exception {
+        mockMvc.perform(get("/api/buyer/my-orders").with(user("seller@mail.com").roles("SELLER")))
+                .andExpect(status().isForbidden());
     }
 }

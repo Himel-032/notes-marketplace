@@ -17,11 +17,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -87,5 +90,28 @@ class OrderServiceImplTest {
         Order order = orderService.createOrder(10L, 20L, "TRX-250");
 
         assertThat(order.getTotalPrice()).isEqualTo(250.0);
+    }
+
+    @Test
+    void createOrder_emptyCart() {
+        User buyer = TestDataBuilder.user(10L, "buyer@mail.com", "Buyer", true, Set.of(new Role(2L, "BUYER")));
+
+        when(userRepository.findById(10L)).thenReturn(Optional.of(buyer));
+        when(noteRepository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> orderService.createOrder(10L, 999L, "TRX-EMPTY"))
+                .isInstanceOf(NoSuchElementException.class);
+
+        verify(orderRepository, never()).save(any(Order.class));
+        verify(orderItemRepository, never()).save(any(OrderItem.class));
+    }
+
+    @Test
+    void getOrdersByUser_notFound() {
+        when(orderRepository.findByBuyerIdOrderByCreatedAtDesc(9999L)).thenReturn(List.of());
+
+        List<Order> orders = orderService.getBuyerOrders(9999L);
+
+        assertThat(orders).isEmpty();
     }
 }
