@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:notesdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  sql:
+    init:
+      mode: never
+
+cloudinary:
+  cloud-name: test-cloud
+  api-key: test-key
+  api-secret: test-secret
+
+sslcommerz:
+  store-id: test-store
+  store-password: test-password
+  base-url: https://sandbox.sslcommerz.com/gwprocess/v4/api.php
+  success-url: http://localhost:8080/api/payment/success
+  fail-url: http://localhost:8080/api/payment/fail
+  cancel-url: http://localhost:8080/api/payment/cancel
