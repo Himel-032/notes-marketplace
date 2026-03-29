@@ -124,12 +124,12 @@ public class WebController {
     }
 
     @GetMapping({"/payment/failed", "/payment/fail"})
-    public String paymentFailed() {
+    public String paymentFailedView() {
         return "payment/payment-failed";
     }
 
     @GetMapping({"/payment/cancelled", "/payment/cancel"})
-    public String paymentCancelled() {
+    public String paymentCancelledView() {
         return "payment/payment-cancelled";
     }
 }
