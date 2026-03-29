@@ -1,6 +1,5 @@
 package com.notes.notesmarketplace.service.impl;
 
-import com.notes.notesmarketplace.model.Note;
 import com.notes.notesmarketplace.model.Role;
 import com.notes.notesmarketplace.model.User;
 import com.notes.notesmarketplace.repository.NoteRepository;
