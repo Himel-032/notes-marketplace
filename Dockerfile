@@ -1,31 +1,13 @@
-# Stage 1: Build the application
-FROM eclipse-temurin:17-jdk-alpine AS build
+# Stage 1: Build
+FROM maven:3.9.6-eclipse-temurin-17 AS builder
 WORKDIR /app
-
-# Copy Maven wrapper and pom.xml
-COPY mvnw .
-COPY mvnw.cmd .
-COPY .mvn .mvn
 COPY pom.xml .
+RUN mvn dependency:go-offline
+COPY src ./src
+RUN mvn clean package -DskipTests
 
-# Download dependencies
-RUN ./mvnw dependency:go-offline -B
-
-# Copy source code
-COPY src src
-
-# Build the application
-RUN ./mvnw package -DskipTests
-
-# Stage 2: Create the runtime image
-FROM eclipse-temurin:17-jre-alpine
+# Stage 2: Run
+FROM eclipse-temurin:17-jre
 WORKDIR /app
-
-# Copy the JAR from build stage
-COPY --from=build /app/target/*.jar app.jar
-
-# Expose port
-EXPOSE 8080
-
-# Run the application
+COPY --from=builder /app/target/*.jar app.jar
 ENTRYPOINT ["java","-jar","app.jar"]
