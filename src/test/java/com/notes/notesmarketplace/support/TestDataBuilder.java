@@ -1,5 +1,11 @@
 package com.notes.notesmarketplace.support;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.springframework.mock.web.MockMultipartFile;
+
 import com.notes.notesmarketplace.dto.LoginRequest;
 import com.notes.notesmarketplace.dto.NoteUpdateRequest;
 import com.notes.notesmarketplace.dto.NoteUploadRequest;
@@ -8,11 +14,6 @@ import com.notes.notesmarketplace.model.Note;
 import com.notes.notesmarketplace.model.Order;
 import com.notes.notesmarketplace.model.Role;
 import com.notes.notesmarketplace.model.User;
-import org.springframework.mock.web.MockMultipartFile;
-
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 
 public final class TestDataBuilder {
 
@@ -89,12 +90,21 @@ public final class TestDataBuilder {
         request.setDescription("chapter 1");
         request.setCategory("Physics");
         request.setPrice(120.0);
-        request.setFile(new MockMultipartFile(
-                "file",
-                "note.pdf",
-                "application/pdf",
-                "pdf-content".getBytes()
-        ));
+        request.setFile(new MockMultipartFile("file", "note.pdf", "application/pdf", "pdf-content".getBytes()));
         return request;
+    }
+
+    public static NoteUploadRequest noteUploadRequestWithContentType(String fileName, String contentType) {
+        NoteUploadRequest request = new NoteUploadRequest();
+        request.setTitle("Edge File Note");
+        request.setDescription("invalid file type case");
+        request.setCategory("Testing");
+        request.setPrice(99.0);
+        request.setFile(new MockMultipartFile("file", fileName, contentType, "file-content".getBytes()));
+        return request;
+    }
+
+    public static NoteUploadRequest noteUploadRequestInvalidType() {
+        return noteUploadRequestWithContentType("note.txt", "text/plain");
     }
 }

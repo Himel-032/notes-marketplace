@@ -1,5 +1,27 @@
 package com.notes.notesmarketplace.service;
 
+import java.util.Optional;
+import java.util.Set;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import static org.mockito.ArgumentMatchers.any;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
 import com.notes.notesmarketplace.dto.AuthResponse;
 import com.notes.notesmarketplace.dto.LoginRequest;
 import com.notes.notesmarketplace.dto.RegisterRequest;
@@ -8,26 +30,6 @@ import com.notes.notesmarketplace.model.User;
 import com.notes.notesmarketplace.repository.RoleRepository;
 import com.notes.notesmarketplace.repository.UserRepository;
 import com.notes.notesmarketplace.support.TestDataBuilder;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.Optional;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -91,5 +93,36 @@ class AuthServiceTest {
 
         assertThat(response.getMessage()).isEqualTo("Login successful");
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isEqualTo(authentication);
+    }
+
+    @Test
+    void login_invalidCredentials() {
+        LoginRequest request = TestDataBuilder.loginRequest("john@mail.com", "wrong-pass");
+
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenThrow(new BadCredentialsException("Bad credentials"));
+
+        assertThatThrownBy(() -> authService.login(request))
+                .isInstanceOf(BadCredentialsException.class);
+
+        assertThat(SecurityContextHolder.getContext().getAuthentication()).isNull();
+    }
+
+    @Test
+    void password_encryption_check() {
+        RegisterRequest request = TestDataBuilder.registerRequest("Encrypted User", "secure@mail.com", "BUYER");
+        Role buyerRole = new Role(2L, "BUYER");
+
+        when(userRepository.findByEmail("secure@mail.com")).thenReturn(Optional.empty());
+        when(roleRepository.findByRoleName("BUYER")).thenReturn(Optional.of(buyerRole));
+        when(passwordEncoder.encode("Password123!")).thenReturn("hashed-secret");
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        authService.register(request);
+
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(userCaptor.capture());
+        verify(passwordEncoder).encode("Password123!");
+        assertThat(userCaptor.getValue().getPassword()).isEqualTo("hashed-secret");
     }
 }

@@ -17,12 +17,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -102,5 +105,65 @@ class NoteServiceImplTest {
 
         assertThat(note.getId()).isEqualTo(1L);
         assertThat(note.getTitle()).isEqualTo("Biology");
+    }
+
+    @Test
+    void createNote_invalidFileType() {
+        NoteUploadRequest request = TestDataBuilder.noteUploadRequestInvalidType();
+
+        assertThatThrownBy(() -> noteService.uploadNote(request, "seller@mail.com"))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Only PDF files allowed");
+
+        verify(cloudinaryService, never()).uploadPdf(any());
+        verify(cloudinaryService, never()).uploadImage(any());
+    }
+
+    @Test
+    void updateNote_notOwner() {
+        User requester = TestDataBuilder.user(1L, "seller@mail.com", "Seller", true, Set.of(new Role(1L, "SELLER")));
+        User owner = TestDataBuilder.user(2L, "owner@mail.com", "Owner", true, Set.of(new Role(1L, "SELLER")));
+        Note note = TestDataBuilder.note(11L, "Chem", owner);
+        NoteUpdateRequest request = TestDataBuilder.noteUpdateRequest();
+
+        when(userRepository.findByEmail("seller@mail.com")).thenReturn(Optional.of(requester));
+        when(noteRepository.findById(11L)).thenReturn(Optional.of(note));
+
+        assertThatThrownBy(() -> noteService.updateNote(11L, request, "seller@mail.com"))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Unauthorized");
+
+        verify(noteRepository, never()).save(any(Note.class));
+    }
+
+    @Test
+    void deleteNote_notFound() {
+        User seller = TestDataBuilder.user(1L, "seller@mail.com", "Seller", true, Set.of(new Role(1L, "SELLER")));
+
+        when(userRepository.findByEmail("seller@mail.com")).thenReturn(Optional.of(seller));
+        when(noteRepository.findById(404L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> noteService.deleteNote(404L, "seller@mail.com"))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Note not found");
+
+        verify(cloudinaryService, never()).deletePdf(any());
+    }
+
+    @Test
+    void searchNotes() {
+        User seller = TestDataBuilder.user(1L, "seller@mail.com", "Seller", true, Set.of(new Role(1L, "SELLER")));
+        Note titleMatch = TestDataBuilder.note(9L, "Java Fundamentals", seller);
+        Note descMatch = TestDataBuilder.note(10L, "Design Patterns", seller);
+        descMatch.setDescription("Best java patterns collection");
+
+        when(noteRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase("java", "java"))
+                .thenReturn(List.of(titleMatch, descMatch));
+
+        List<NoteDto> notes = noteService.searchNotes("java");
+
+        assertThat(notes).hasSize(2);
+        assertThat(notes).extracting(NoteDto::getTitle)
+                .containsExactlyInAnyOrder("Java Fundamentals", "Design Patterns");
     }
 }
