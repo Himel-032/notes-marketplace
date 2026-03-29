@@ -1,7 +1,9 @@
 package com.notes.notesmarketplace.service.impl;
 
 import com.notes.notesmarketplace.dto.admin.AdminNoteDto;
+import com.notes.notesmarketplace.dto.admin.AdminAnalyticsDto;
 import com.notes.notesmarketplace.dto.admin.AdminUserDto;
+import com.notes.notesmarketplace.exception.ResourceNotFoundException;
 import com.notes.notesmarketplace.model.Note;
 import com.notes.notesmarketplace.model.Role;
 import com.notes.notesmarketplace.model.User;
@@ -25,6 +27,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -84,5 +87,41 @@ class AdminServiceImplTest {
 
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent().get(0).getTitle()).isEqualTo("Core Java");
+    }
+
+    @Test
+    void deleteUser_notFound() {
+        when(userRepository.findById(404L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> adminService.deleteUser(404L))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("User not found: 404");
+    }
+
+    @Test
+    void updateUserStatus() {
+        User buyer = TestDataBuilder.user(9L, "buyer@mail.com", "Buyer", false, Set.of(new Role(2L, "BUYER")));
+
+        when(userRepository.findById(9L)).thenReturn(Optional.of(buyer));
+        when(userRepository.save(buyer)).thenReturn(buyer);
+
+        AdminUserDto updated = adminService.updateUserStatus(9L, true);
+
+        assertThat(updated.isEnabled()).isTrue();
+        assertThat(updated.getId()).isEqualTo(9L);
+        verify(userRepository).save(buyer);
+    }
+
+    @Test
+    void getAnalytics() {
+        when(userRepository.count()).thenReturn(15L);
+        when(noteRepository.count()).thenReturn(40L);
+        when(orderRepository.getTotalSales()).thenReturn(4500.75);
+
+        AdminAnalyticsDto analytics = adminService.getAnalytics();
+
+        assertThat(analytics.getTotalUsers()).isEqualTo(15L);
+        assertThat(analytics.getTotalNotes()).isEqualTo(40L);
+        assertThat(analytics.getTotalSales()).isEqualTo(4500.75);
     }
 }
