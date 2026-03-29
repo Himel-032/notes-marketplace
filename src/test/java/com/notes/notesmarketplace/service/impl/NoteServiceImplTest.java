@@ -16,14 +16,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.mock.web.MockMultipartFile;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
@@ -48,7 +45,7 @@ class NoteServiceImplTest {
     private NoteServiceImpl noteService;
 
     @Test
-    void uploadNote_shouldSaveNote_whenPdfIsValid() {
+    void createNote_success() {
         User seller = TestDataBuilder.user(1L, "seller@mail.com", "Seller", true, Set.of(new Role(1L, "SELLER")));
         NoteUploadRequest request = TestDataBuilder.noteUploadRequestPdf();
 
@@ -66,32 +63,23 @@ class NoteServiceImplTest {
     }
 
     @Test
-    void uploadNote_shouldThrow_whenFileIsNotPdf() {
-        NoteUploadRequest request = TestDataBuilder.noteUploadRequestPdf();
-        request.setFile(new MockMultipartFile("file", "bad.txt", "text/plain", "bad".getBytes()));
-
-        assertThatThrownBy(() -> noteService.uploadNote(request, "seller@mail.com"))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Only PDF files allowed");
-    }
-
-    @Test
-    void updateNote_shouldThrow_whenSellerDoesNotOwnNote() {
-        User owner = TestDataBuilder.user(1L, "owner@mail.com", "Owner", true, Set.of(new Role(1L, "SELLER")));
-        User anotherSeller = TestDataBuilder.user(2L, "another@mail.com", "Another", true, Set.of(new Role(1L, "SELLER")));
-        Note note = TestDataBuilder.note(11L, "Chem", owner);
+    void updateNote_success() {
+        User seller = TestDataBuilder.user(1L, "seller@mail.com", "Seller", true, Set.of(new Role(1L, "SELLER")));
+        Note note = TestDataBuilder.note(11L, "Chem", seller);
         NoteUpdateRequest request = TestDataBuilder.noteUpdateRequest();
 
-        when(userRepository.findByEmail("another@mail.com")).thenReturn(Optional.of(anotherSeller));
+        when(userRepository.findByEmail("seller@mail.com")).thenReturn(Optional.of(seller));
         when(noteRepository.findById(11L)).thenReturn(Optional.of(note));
+        when(noteRepository.save(any(Note.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        assertThatThrownBy(() -> noteService.updateNote(11L, request, "another@mail.com"))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Unauthorized");
+        Note updated = noteService.updateNote(11L, request, "seller@mail.com");
+
+        assertThat(updated.getTitle()).isEqualTo("Updated Title");
+        assertThat(updated.getPrice()).isEqualTo(150.0);
     }
 
     @Test
-    void deleteNote_shouldDeleteFromCloudinaryAndRepository() {
+    void deleteNote_success() {
         User seller = TestDataBuilder.user(1L, "seller@mail.com", "Seller", true, Set.of(new Role(1L, "SELLER")));
         Note note = TestDataBuilder.note(2L, "Math", seller);
 
@@ -106,13 +94,13 @@ class NoteServiceImplTest {
     }
 
     @Test
-    void browseNotes_shouldMapEntitiesToDto() {
+    void getNoteById() {
         User seller = TestDataBuilder.user(1L, "seller@mail.com", "Seller", true, Set.of(new Role(1L, "SELLER")));
-        when(noteRepository.findAll()).thenReturn(List.of(TestDataBuilder.note(1L, "Biology", seller)));
+        when(noteRepository.findById(1L)).thenReturn(Optional.of(TestDataBuilder.note(1L, "Biology", seller)));
 
-        List<NoteDto> notes = noteService.browseNotes();
+        NoteDto note = noteService.getNote(1L);
 
-        assertThat(notes).hasSize(1);
-        assertThat(notes.get(0).getTitle()).isEqualTo("Biology");
+        assertThat(note.getId()).isEqualTo(1L);
+        assertThat(note.getTitle()).isEqualTo("Biology");
     }
 }

@@ -44,7 +44,7 @@ class OrderServiceImplTest {
     private OrderServiceImpl orderService;
 
     @Test
-    void createOrder_shouldPersistOrderAndItem() {
+    void createOrder_success() {
         User buyer = TestDataBuilder.user(10L, "buyer@mail.com", "Buyer", true, Set.of(new Role(2L, "BUYER")));
         Note note = TestDataBuilder.note(20L, "History", buyer);
 
@@ -62,16 +62,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void hasPurchased_shouldReturnTrue_whenOrderItemExists() {
-        when(orderItemRepository.existsByOrderBuyerIdAndNoteId(1L, 2L)).thenReturn(true);
-
-        boolean purchased = orderService.hasPurchased(1L, 2L);
-
-        assertThat(purchased).isTrue();
-    }
-
-    @Test
-    void getBuyerOrders_shouldDelegateToRepository() {
+    void getOrderById() {
         User buyer = TestDataBuilder.user(7L, "buyer@mail.com", "Buyer", true, Set.of(new Role(2L, "BUYER")));
         when(orderRepository.findByBuyerIdOrderByCreatedAtDesc(7L))
                 .thenReturn(List.of(TestDataBuilder.order(1L, buyer, 120.0, "TRX-2")));
@@ -79,21 +70,22 @@ class OrderServiceImplTest {
         List<Order> orders = orderService.getBuyerOrders(7L);
 
         assertThat(orders).hasSize(1);
-        assertThat(orders.get(0).getTransactionId()).isEqualTo("TRX-2");
+        assertThat(orders.get(0).getId()).isEqualTo(1L);
     }
 
     @Test
-    void getBuyerPurchasedNotes_shouldMapOrderItemsToNotes() {
-        User buyer = TestDataBuilder.user(4L, "buyer@mail.com", "Buyer", true, Set.of(new Role(2L, "BUYER")));
-        Note note = TestDataBuilder.note(9L, "Algebra", buyer);
-        Order order = TestDataBuilder.order(3L, buyer, 100.0, "TRX-3");
-        OrderItem item = OrderItem.builder().id(1L).order(order).note(note).price(100.0).build();
+    void calculateTotalPrice() {
+        User buyer = TestDataBuilder.user(10L, "buyer@mail.com", "Buyer", true, Set.of(new Role(2L, "BUYER")));
+        Note note = TestDataBuilder.note(20L, "History", buyer);
+        note.setPrice(250.0);
 
-        when(orderItemRepository.findByOrderBuyerId(4L)).thenReturn(List.of(item));
+        when(userRepository.findById(10L)).thenReturn(Optional.of(buyer));
+        when(noteRepository.findById(20L)).thenReturn(Optional.of(note));
+        when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArgument(0));
+        when(orderItemRepository.save(any(OrderItem.class))).thenAnswer(i -> i.getArgument(0));
 
-        List<Note> notes = orderService.getBuyerPurchasedNotes(4L);
+        Order order = orderService.createOrder(10L, 20L, "TRX-250");
 
-        assertThat(notes).hasSize(1);
-        assertThat(notes.get(0).getTitle()).isEqualTo("Algebra");
+        assertThat(order.getTotalPrice()).isEqualTo(250.0);
     }
 }

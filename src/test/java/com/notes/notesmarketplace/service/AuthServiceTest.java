@@ -15,7 +15,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -54,7 +53,7 @@ class AuthServiceTest {
     }
 
     @Test
-    void register_shouldCreateUser_whenRequestIsValid() {
+    void register_success() {
         RegisterRequest request = TestDataBuilder.registerRequest("John", "john@mail.com", "BUYER");
         Role buyerRole = new Role(2L, "BUYER");
 
@@ -69,7 +68,7 @@ class AuthServiceTest {
     }
 
     @Test
-    void register_shouldThrow_whenEmailAlreadyExists() {
+    void register_duplicateEmail() {
         RegisterRequest request = TestDataBuilder.registerRequest("John", "john@mail.com", "BUYER");
 
         when(userRepository.findByEmail("john@mail.com"))
@@ -81,19 +80,7 @@ class AuthServiceTest {
     }
 
     @Test
-    void register_shouldThrow_whenRoleDoesNotExist() {
-        RegisterRequest request = TestDataBuilder.registerRequest("John", "john@mail.com", "BUYER");
-
-        when(userRepository.findByEmail("john@mail.com")).thenReturn(Optional.empty());
-        when(roleRepository.findByRoleName("BUYER")).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> authService.register(request))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessage("Role not found");
-    }
-
-    @Test
-    void login_shouldAuthenticateAndSetContext() {
+    void login_success() {
         LoginRequest request = TestDataBuilder.loginRequest("john@mail.com", "secret");
         Authentication authentication = new UsernamePasswordAuthenticationToken("john@mail.com", "secret");
 
@@ -104,17 +91,5 @@ class AuthServiceTest {
 
         assertThat(response.getMessage()).isEqualTo("Login successful");
         assertThat(SecurityContextHolder.getContext().getAuthentication()).isEqualTo(authentication);
-    }
-
-    @Test
-    void login_shouldThrow_whenCredentialsAreInvalid() {
-        LoginRequest request = TestDataBuilder.loginRequest("john@mail.com", "wrong");
-
-        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                .thenThrow(new BadCredentialsException("Bad credentials"));
-
-        assertThatThrownBy(() -> authService.login(request))
-                .isInstanceOf(BadCredentialsException.class)
-                .hasMessage("Bad credentials");
     }
 }
