@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<body>
+<header class="admin-header" th:fragment="header(pageTitle)">
+    <div class="header-left">
+        <button id="sidebarToggle" class="btn btn-outline-secondary btn-sm d-lg-none" type="button" aria-label="Toggle navigation">
+            Menu
+        </button>
+        <h2 class="page-title" th:text="${pageTitle}">Admin Page</h2>
+    </div>
+    <div class="header-right">
+        <span class="admin-chip">
+            <span class="chip-label">Signed in as</span>
+            <strong sec:authentication="name">admin@example.com</strong>
+        </span>
+    </div>
+</header>
+</body>
+</html>

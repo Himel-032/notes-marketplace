@@ -1,0 +1,49 @@
+{
+  "properties": [
+    {
+      "name": "cloudinary.cloud-name",
+      "type": "java.lang.String",
+      "description": "Cloudinary cloud name"
+    },
+    {
+      "name": "cloudinary.api-key",
+      "type": "java.lang.String",
+      "description": "Cloudinary API key"
+    },
+    {
+      "name": "cloudinary.api-secret",
+      "type": "java.lang.String",
+      "description": "Cloudinary API secret"
+    },
+    {
+      "name": "sslcommerz.store-id",
+      "type": "java.lang.String",
+      "description": "SSLCommerz store id"
+    },
+    {
+      "name": "sslcommerz.store-password",
+      "type": "java.lang.String",
+      "description": "SSLCommerz store password"
+    },
+    {
+      "name": "sslcommerz.base-url",
+      "type": "java.lang.String",
+      "description": "SSLCommerz base API URL"
+    },
+    {
+      "name": "sslcommerz.success-url",
+      "type": "java.lang.String",
+      "description": "Payment success callback URL"
+    },
+    {
+      "name": "sslcommerz.fail-url",
+      "type": "java.lang.String",
+      "description": "Payment fail callback URL"
+    },
+    {
+      "name": "sslcommerz.cancel-url",
+      "type": "java.lang.String",
+      "description": "Payment cancel callback URL"
+    }
+  ]
+}

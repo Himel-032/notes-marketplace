@@ -6,7 +6,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @ActiveProfiles("test")
-class NotesmarketplaceApplicationTests {
+public class NotesmarketplaceApplicationTests {
 
 	@Test
 	void contextLoads() {
