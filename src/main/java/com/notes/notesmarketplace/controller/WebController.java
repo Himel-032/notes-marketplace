@@ -83,11 +83,6 @@ public class WebController {
         }
     }
 
-    @GetMapping("/admin/dashboard")
-    public String adminDashboard() {
-        return "admin/admin-dashboard";
-    }
-
     @GetMapping("/seller/dashboard")
     public String sellerDashboard() {
         return "seller/seller-dashboard";
@@ -128,13 +123,13 @@ public class WebController {
         return "payment/payment-success";
     }
 
-    @GetMapping("/payment/failed")
-    public String paymentFailed() {
+    @GetMapping({"/payment/failed", "/payment/fail"})
+    public String paymentFailedView() {
         return "payment/payment-failed";
     }
 
-    @GetMapping("/payment/cancelled")
-    public String paymentCancelled() {
+    @GetMapping({"/payment/cancelled", "/payment/cancel"})
+    public String paymentCancelledView() {
         return "payment/payment-cancelled";
     }
 }

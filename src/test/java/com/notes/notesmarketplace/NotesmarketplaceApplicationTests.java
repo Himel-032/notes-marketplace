@@ -1,12 +1,13 @@
 package com.notes.notesmarketplace;
 
-import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
-class NotesmarketplaceApplicationTests {
+@ActiveProfiles("test")
+public class NotesmarketplaceApplicationTests {
 
-	@Test
+	@org.junit.jupiter.api.Test
 	void contextLoads() {
 	}
 

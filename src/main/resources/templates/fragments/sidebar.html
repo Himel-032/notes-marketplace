@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<body>
+<aside class="admin-sidebar" th:fragment="sidebar(activePage)">
+    <div class="brand-block">
+        <div class="brand-mark">NM</div>
+        <div>
+            <h1 class="brand-title">Notes Admin</h1>
+            <p class="brand-subtitle">Control Center</p>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="Admin navigation">
+        <a class="sidebar-link" th:classappend="${activePage == 'dashboard'} ? ' active'" th:href="@{/admin/dashboard}">
+            <span>Dashboard</span>
+        </a>
+        <a class="sidebar-link" th:classappend="${activePage == 'users'} ? ' active'" th:href="@{/admin/users}">
+            <span>Users</span>
+        </a>
+        <a class="sidebar-link" th:classappend="${activePage == 'notes'} ? ' active'" th:href="@{/admin/notes}">
+            <span>Notes</span>
+        </a>
+        <a class="sidebar-link" th:classappend="${activePage == 'orders'} ? ' active'" th:href="@{/admin/orders}">
+            <span>Orders</span>
+        </a>
+        <a class="sidebar-link" th:classappend="${activePage == 'analytics'} ? ' active'" th:href="@{/admin/analytics}">
+            <span>Analytics</span>
+        </a>
+    </nav>
+
+    <form th:action="@{/logout}" method="post" class="sidebar-logout">
+        <button type="submit" class="btn btn-danger w-100">Logout</button>
+    </form>
+</aside>
+</body>
+</html>
