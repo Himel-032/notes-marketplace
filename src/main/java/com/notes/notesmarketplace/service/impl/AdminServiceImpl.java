@@ -126,6 +126,7 @@ public class AdminServiceImpl implements AdminService {
                 .price(note.getPrice())
                 .sellerId(note.getSeller() != null ? note.getSeller().getId() : null)
                 .sellerEmail(note.getSeller() != null ? note.getSeller().getEmail() : null)
+                .pdfUrl(note.getPdfUrl())
                 .build();
     }
 }

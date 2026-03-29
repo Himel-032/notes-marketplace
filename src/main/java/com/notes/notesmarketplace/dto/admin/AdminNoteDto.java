@@ -12,4 +12,5 @@ public class AdminNoteDto {
     Double price;
     Long sellerId;
     String sellerEmail;
+    String pdfUrl;
 }
