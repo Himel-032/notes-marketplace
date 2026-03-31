@@ -55,7 +55,7 @@
                             <tr th:each="order : ${orders}">
                                 <td th:text="${order.id}">1</td>
                                 <td th:text="${order.buyer != null ? order.buyer.name : 'N/A'}">Buyer</td>
-                                <td>$<span th:text="${#numbers.formatDecimal(order.totalPrice, 1, 2)}">0.00</span></td>
+                                <td>৳ <span th:text="${#numbers.formatDecimal(order.totalPrice, 1, 2)}">0.00</span></td>
                                 <td>
                                     <span class="badge"
                                           th:classappend="${order.status == 'PAID'} ? 'text-bg-success' : (${order.status == 'PENDING'} ? 'text-bg-warning' : (${order.status == 'FAILED'} ? 'text-bg-danger' : 'text-bg-secondary'))"
