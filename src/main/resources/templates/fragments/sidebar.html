@@ -1,30 +1,58 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
 <body>
-<aside class="admin-sidebar" th:fragment="sidebar(activePage)">
+<aside class="admin-sidebar"
+    th:fragment="sidebar(activePage)"
+    th:classappend="${#strings.startsWith(activePage, 'seller-')} ? ' role-seller' : (${#strings.startsWith(activePage, 'buyer-')} ? ' role-buyer' : ' role-admin')">
     <div class="brand-block">
         <div class="brand-mark">NM</div>
         <div>
-            <h1 class="brand-title">Notes Admin</h1>
-            <p class="brand-subtitle">Control Center</p>
+            <h1 class="brand-title">Notes Marketplace</h1>
+            <p class="brand-subtitle" sec:authorize="hasRole('ADMIN')">Admin Panel</p>
+            <p class="brand-subtitle" sec:authorize="hasRole('SELLER')">Seller Workspace</p>
+            <p class="brand-subtitle" sec:authorize="hasRole('BUYER')">Buyer Workspace</p>
         </div>
     </div>
 
-    <nav class="sidebar-nav" aria-label="Admin navigation">
-        <a class="sidebar-link" th:classappend="${activePage == 'dashboard'} ? ' active'" th:href="@{/admin/dashboard}">
+    <nav class="sidebar-nav" aria-label="Workspace navigation">
+        <a class="sidebar-link" th:classappend="${activePage == 'dashboard'} ? ' active'" th:href="@{/admin/dashboard}" sec:authorize="hasRole('ADMIN')">
             <span>Dashboard</span>
         </a>
-        <a class="sidebar-link" th:classappend="${activePage == 'users'} ? ' active'" th:href="@{/admin/users}">
+        <a class="sidebar-link" th:classappend="${activePage == 'users'} ? ' active'" th:href="@{/admin/users}" sec:authorize="hasRole('ADMIN')">
             <span>Users</span>
         </a>
-        <a class="sidebar-link" th:classappend="${activePage == 'notes'} ? ' active'" th:href="@{/admin/notes}">
+        <a class="sidebar-link" th:classappend="${activePage == 'notes'} ? ' active'" th:href="@{/admin/notes}" sec:authorize="hasRole('ADMIN')">
             <span>Notes</span>
         </a>
-        <a class="sidebar-link" th:classappend="${activePage == 'orders'} ? ' active'" th:href="@{/admin/orders}">
+        <a class="sidebar-link" th:classappend="${activePage == 'orders'} ? ' active'" th:href="@{/admin/orders}" sec:authorize="hasRole('ADMIN')">
             <span>Orders</span>
         </a>
-        <a class="sidebar-link" th:classappend="${activePage == 'analytics'} ? ' active'" th:href="@{/admin/analytics}">
+        <a class="sidebar-link" th:classappend="${activePage == 'analytics'} ? ' active'" th:href="@{/admin/analytics}" sec:authorize="hasRole('ADMIN')">
             <span>Analytics</span>
+        </a>
+
+        <a class="sidebar-link" th:classappend="${activePage == 'seller-dashboard'} ? ' active'" th:href="@{/seller/dashboard}" sec:authorize="hasRole('SELLER')">
+            <span>Dashboard</span>
+        </a>
+        <a class="sidebar-link" th:classappend="${activePage == 'seller-upload'} ? ' active'" th:href="@{/seller/upload-note}" sec:authorize="hasRole('SELLER')">
+            <span>Upload Note</span>
+        </a>
+        <a class="sidebar-link" th:classappend="${activePage == 'seller-notes'} ? ' active'" th:href="@{/seller/notes}" sec:authorize="hasRole('SELLER')">
+            <span>My Notes</span>
+        </a>
+
+        <a class="sidebar-link" th:classappend="${activePage == 'buyer-dashboard'} ? ' active'" th:href="@{/buyer/dashboard}" sec:authorize="hasRole('BUYER')">
+            <span>Dashboard</span>
+        </a>
+        <a class="sidebar-link" th:classappend="${activePage == 'buyer-browse'} ? ' active'" th:href="@{/buyer/browse}" sec:authorize="hasRole('BUYER')">
+            <span>Browse Notes</span>
+        </a>
+        <a class="sidebar-link" th:classappend="${activePage == 'buyer-orders'} ? ' active'" th:href="@{/buyer/orders}" sec:authorize="hasRole('BUYER')">
+            <span>Orders</span>
+        </a>
+        <a class="sidebar-link" th:classappend="${activePage == 'buyer-downloads'} ? ' active'" th:href="@{/buyer/my-downloads}" sec:authorize="hasRole('BUYER')">
+            <span>Downloads</span>
         </a>
     </nav>
 

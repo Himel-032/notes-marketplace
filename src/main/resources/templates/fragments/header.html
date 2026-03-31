@@ -2,6 +2,55 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
 <body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm fixed-top" th:fragment="mainNavbar(activePage)">
+    <div class="container">
+        <a class="navbar-brand fw-semibold" th:href="@{/}">Digital Notes Marketplace</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mainNavbar">
+            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                <li class="nav-item" sec:authorize="isAnonymous()">
+                    <a class="nav-link" th:classappend="${activePage == 'login'} ? ' active'" th:href="@{/login}">Login</a>
+                </li>
+                <li class="nav-item" sec:authorize="isAnonymous()">
+                    <a class="nav-link" th:classappend="${activePage == 'register'} ? ' active'" th:href="@{/register}">Register</a>
+                </li>
+
+                <li class="nav-item" sec:authorize="hasRole('SELLER')">
+                    <a class="nav-link" th:classappend="${activePage == 'seller-dashboard'} ? ' active'" th:href="@{/seller/dashboard}">Dashboard</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('SELLER')">
+                    <a class="nav-link" th:classappend="${activePage == 'seller-upload'} ? ' active'" th:href="@{/seller/upload-note}">Upload Note</a>
+                </li>
+
+                <li class="nav-item" sec:authorize="hasRole('BUYER')">
+                    <a class="nav-link" th:classappend="${activePage == 'buyer-browse'} ? ' active'" th:href="@{/buyer/browse}">Notes</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('BUYER')">
+                    <a class="nav-link" th:classappend="${activePage == 'buyer-orders'} ? ' active'" th:href="@{/buyer/orders}">Orders</a>
+                </li>
+
+                <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <a class="nav-link" th:href="@{/admin/dashboard}">Admin Panel</a>
+                </li>
+            </ul>
+
+            <form th:action="@{/logout}" method="post" class="ms-lg-3" sec:authorize="isAuthenticated()">
+                <button class="btn btn-light btn-sm" type="submit">Logout</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-3" th:fragment="flashMessages">
+    <div th:if="${param.error}" class="alert alert-danger" role="alert">Invalid request or credentials.</div>
+    <div th:if="${param.logout}" class="alert alert-success" role="alert">You have logged out successfully.</div>
+    <div th:if="${param.registered}" class="alert alert-success" role="alert">Registration successful. Please login.</div>
+    <div th:if="${success}" class="alert alert-success" role="alert" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" role="alert" th:text="${error}"></div>
+</div>
+
 <header class="admin-header" th:fragment="header(pageTitle)">
     <div class="header-left">
         <button id="sidebarToggle" class="btn btn-outline-secondary btn-sm d-lg-none" type="button" aria-label="Toggle navigation">
