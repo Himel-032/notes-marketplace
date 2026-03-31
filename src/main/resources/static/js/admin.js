@@ -1,3 +1,19 @@
+// Compatibility shim for scripts/extensions that expect mgt.clearMarks().
+// Prevents hard crashes when mgt exists but clearMarks is missing.
+(() => {
+    const scope = window;
+    scope.mgt = scope.mgt || {};
+
+    if (typeof scope.mgt.clearMarks !== 'function') {
+        scope.mgt.clearMarks = function clearMarksShim(...args) {
+            if (typeof scope.mgt.unmark === 'function') {
+                return scope.mgt.unmark(...args);
+            }
+            return undefined;
+        };
+    }
+})();
+
 (() => {
     const sidebar = document.querySelector('.admin-sidebar');
     const toggleButton = document.getElementById('sidebarToggle');
