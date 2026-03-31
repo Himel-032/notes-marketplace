@@ -15,7 +15,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Map;
-import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -26,8 +25,8 @@ public class PaymentServiceImpl implements PaymentService {
     private final NoteRepository noteRepository;
     private final UserRepository userRepository;
 
-    // Store pending payments temporarily: transactionId -> payment info
-    private final Map<String, PendingPaymentInfo> pendingPayments = new ConcurrentHashMap<>();
+    // Store pending payments temporarily: transactionId -> {buyerId, noteId}
+    private final Map<String, Map<String, Long>> pendingPayments = new ConcurrentHashMap<>();
 
     @Value("${sslcommerz.store-id}")
     private String storeId;
@@ -39,7 +38,7 @@ public class PaymentServiceImpl implements PaymentService {
     private String sslUrl;
 
     @Override
-    public String createPaymentSession(String email, Long noteId, String paymentMethod) {
+    public String createPaymentSession(String email, Long noteId) {
 
         try {
 
@@ -49,7 +48,7 @@ public class PaymentServiceImpl implements PaymentService {
             String tranId = UUID.randomUUID().toString();
 
             // Store pending payment info
-            storePendingPayment(tranId, buyer.getId(), noteId, paymentMethod);
+            storePendingPayment(tranId, buyer.getId(), noteId);
 
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 
@@ -98,45 +97,27 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public void storePendingPayment(String transactionId, Long buyerId, Long noteId, String paymentMethod) {
-        PendingPaymentInfo paymentInfo = new PendingPaymentInfo(
-                buyerId,
-                noteId,
-                normalizePaymentMethod(paymentMethod)
-        );
+    public void storePendingPayment(String transactionId, Long buyerId, Long noteId) {
+        Map<String, Long> paymentInfo = new ConcurrentHashMap<>();
+        paymentInfo.put("buyerId", buyerId);
+        paymentInfo.put("noteId", noteId);
         pendingPayments.put(transactionId, paymentInfo);
     }
 
     @Override
     public Long getBuyerId(String transactionId) {
-        PendingPaymentInfo paymentInfo = pendingPayments.get(transactionId);
-        return paymentInfo != null ? paymentInfo.buyerId() : null;
+        Map<String, Long> paymentInfo = pendingPayments.get(transactionId);
+        return paymentInfo != null ? paymentInfo.get("buyerId") : null;
     }
 
     @Override
     public Long getNoteId(String transactionId) {
-        PendingPaymentInfo paymentInfo = pendingPayments.get(transactionId);
-        return paymentInfo != null ? paymentInfo.noteId() : null;
-    }
-
-    @Override
-    public String getPaymentMethod(String transactionId) {
-        PendingPaymentInfo paymentInfo = pendingPayments.get(transactionId);
-        return paymentInfo != null ? paymentInfo.paymentMethod() : null;
+        Map<String, Long> paymentInfo = pendingPayments.get(transactionId);
+        return paymentInfo != null ? paymentInfo.get("noteId") : null;
     }
 
     @Override
     public void removePendingPayment(String transactionId) {
         pendingPayments.remove(transactionId);
-    }
-
-    private String normalizePaymentMethod(String paymentMethod) {
-        if (paymentMethod == null || paymentMethod.isBlank()) {
-            return "CARD";
-        }
-        return paymentMethod.toUpperCase(Locale.ROOT);
-    }
-
-    private record PendingPaymentInfo(Long buyerId, Long noteId, String paymentMethod) {
     }
 }

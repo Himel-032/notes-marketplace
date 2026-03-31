@@ -7,14 +7,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.notes.notesmarketplace.factory.UserFactory;
 import com.notes.notesmarketplace.model.Role;
+import com.notes.notesmarketplace.model.User;
 import com.notes.notesmarketplace.repository.RoleRepository;
 import com.notes.notesmarketplace.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
-
-import java.util.Locale;
 
 @Controller
 @RequiredArgsConstructor
@@ -23,7 +21,6 @@ public class WebController {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
-    private final UserFactory userFactory;
 
     @GetMapping("/")
     public String home() {
@@ -59,19 +56,23 @@ public class WebController {
                 return "auth/register";
             }
 
-                String normalizedRole = role.toUpperCase(Locale.ROOT);
-
-                // Validate role is only BUYER or SELLER
-                if (!"BUYER".equals(normalizedRole) && !"SELLER".equals(normalizedRole)) {
+            // Validate role is only BUYER or SELLER
+            if (!"BUYER".equals(role) && !"SELLER".equals(role)) {
                 model.addAttribute("error", "Invalid role selected!");
                 return "auth/register";
             }
 
             // Find role
-                Role userRole = roleRepository.findByRoleName(normalizedRole)
-                    .orElseThrow(() -> new RuntimeException("Role not found: " + normalizedRole));
+            Role userRole = roleRepository.findByRoleName(role)
+                    .orElseThrow(() -> new RuntimeException("Role not found: " + role));
 
-                var user = userFactory.createUser(name, email, passwordEncoder.encode(password), userRole);
+            // Create new user
+            User user = new User();
+            user.setName(name);
+            user.setEmail(email);
+            user.setPassword(passwordEncoder.encode(password));
+            user.setEnabled(true);
+            user.getRoles().add(userRole);
 
             userRepository.save(user);
 

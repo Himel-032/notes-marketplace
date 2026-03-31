@@ -7,11 +7,7 @@ import java.util.List;
 
 public interface OrderService {
 
-    default Order createOrder(Long buyerId, Long noteId, String transactionId) {
-        return createOrder(buyerId, noteId, transactionId, "CARD");
-    }
-
-    Order createOrder(Long buyerId, Long noteId, String transactionId, String paymentMethod);
+    Order createOrder(Long buyerId, Long noteId, String transactionId);
 
     boolean hasPurchased(Long buyerId, Long noteId);
 

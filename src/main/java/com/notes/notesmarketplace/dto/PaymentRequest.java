@@ -7,5 +7,4 @@ import lombok.Setter;
 @Setter
 public class PaymentRequest {
     private Long noteId;
-    private String paymentMethod;
 }

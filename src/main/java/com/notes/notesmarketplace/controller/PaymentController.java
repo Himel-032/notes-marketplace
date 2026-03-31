@@ -26,8 +26,7 @@ public class PaymentController {
 
         String redirectUrl = paymentService.createPaymentSession(
                 authentication.getName(),
-            request.getNoteId(),
-            request.getPaymentMethod()
+                request.getNoteId()
         );
 
         return ResponseEntity.ok(redirectUrl);
@@ -53,8 +52,7 @@ public class PaymentController {
         }
 
         // Create order
-        String paymentMethod = paymentService.getPaymentMethod(tran_id);
-        orderService.createOrder(buyerId, noteId, tran_id, paymentMethod);
+        orderService.createOrder(buyerId, noteId, tran_id);
 
         // Remove from pending payments
         paymentService.removePendingPayment(tran_id);
