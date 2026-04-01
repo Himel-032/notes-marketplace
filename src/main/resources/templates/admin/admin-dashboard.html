@@ -13,7 +13,7 @@
     <div class="card admin-panel mx-auto" style="max-width: 720px;">
         <div class="card-body p-4 p-md-5 text-center">
             <h1 class="h3 mb-1">Admin Access</h1>
-            <p class="text-secondary mb-3">Signed in as <strong sec:authentication="name">admin@example.com</strong></p>
+            <p class="text-secondary mb-3">Signed in as <strong th:text="${currentUserName}">Admin Name</strong></p>
             <span class="badge text-bg-dark mb-4">ADMIN</span>
 
             <ul class="list-group text-start mb-4">

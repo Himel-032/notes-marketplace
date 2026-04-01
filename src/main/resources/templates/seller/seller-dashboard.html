@@ -21,7 +21,7 @@
                 <div>
                     <p class="text-secondary mb-1">Seller Workspace</p>
                     <h1 class="h4 mb-1">Manage and publish your notes</h1>
-                    <p class="mb-0 text-secondary">Signed in as <strong sec:authentication="name">seller@example.com</strong></p>
+                    <p class="mb-0 text-secondary">Signed in as <strong th:text="${currentUserName}">Seller Name</strong></p>
                 </div>
                 <div class="d-flex gap-2 align-items-start">
                     <a href="/seller/upload-note" class="btn btn-primary">Upload Note</a>
@@ -67,6 +67,26 @@
                 <div id="notesContainer" class="vstack gap-2"></div>
             </div>
         </section>
+
+        <section class="card admin-panel mt-3">
+            <div class="card-body">
+                <h2 class="h5 mb-3">Sales Analytics</h2>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Note Title</th>
+                                <th>Price (৳)</th>
+                                <th>Sales</th>
+                            </tr>
+                        </thead>
+                        <tbody id="analyticsTableBody">
+                            <tr><td colspan="3" class="text-center text-secondary">Loading analytics...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
     </main>
 
     <div th:replace="~{fragments/footer :: footer}"></div>
@@ -85,6 +105,7 @@
         async function loadDashboardData() {
             const loading = document.getElementById('loading');
             const container = document.getElementById('notesContainer');
+            const analyticsBody = document.getElementById('analyticsTableBody');
             
             try {
                 const response = await fetch('/seller/notes/my-notes');
@@ -94,6 +115,25 @@
                     
                     // Update statistics
                     updateStatistics(notes);
+
+                    // Populate sales analytics table
+                    if (notes.length === 0) {
+                        analyticsBody.innerHTML = '<tr><td colspan="3" class="text-center text-secondary">No notes uploaded yet.</td></tr>';
+                    } else {
+                        analyticsBody.innerHTML = '';
+                        notes.forEach(note => {
+                            const row = document.createElement('tr');
+                            const salesLabel = (note.salesCount && note.salesCount > 0)
+                                ? `<span class="badge text-bg-success">${note.salesCount} sold</span>`
+                                : `<span class="badge text-bg-secondary">Not sold yet</span>`;
+                            row.innerHTML = `
+                                <td>${escapeHtml(note.title)}</td>
+                                <td>৳ ${note.price.toFixed(2)}</td>
+                                <td>${salesLabel}</td>
+                            `;
+                            analyticsBody.appendChild(row);
+                        });
+                    }
                     
                     // Show recent notes (last 5)
                     if (notes.length === 0) {
@@ -112,9 +152,11 @@
                     }
                 } else {
                     container.innerHTML = '<div class="no-notes">❌ Error loading notes</div>';
+                    analyticsBody.innerHTML = '<tr><td colspan="3" class="text-center text-danger">Error loading analytics.</td></tr>';
                 }
             } catch (error) {
                 container.innerHTML = '<div class="no-notes">❌ Error: ' + error.message + '</div>';
+                analyticsBody.innerHTML = '<tr><td colspan="3" class="text-center text-danger">Error: ' + error.message + '</td></tr>';
             } finally {
                 loading.style.display = 'none';
             }
