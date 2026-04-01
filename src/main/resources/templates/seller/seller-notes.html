@@ -306,6 +306,10 @@
     }
 
     function createNoteCard(note) {
+        const salesLabel = (note.salesCount && note.salesCount > 0)
+            ? `<span class="badge text-bg-success">Bought ${note.salesCount} times</span>`
+            : `<span class="badge text-bg-secondary">Not sold yet</span>`;
+
         const card = document.createElement('div');
         card.className = 'col-12 col-md-6 col-xl-4';
         card.innerHTML = `
@@ -314,7 +318,8 @@
                     <h3 class="h5 mb-1">${escapeHtml(note.title)}</h3>
                     <span class="badge text-bg-primary align-self-start mb-2">${escapeHtml(note.category)}</span>
                     <p class="text-secondary small mb-3">${escapeHtml(note.description)}</p>
-                    <p class="h5 text-success mb-3">৳ ${note.price.toFixed(2)}</p>
+                    <p class="h5 text-success mb-1">৳ ${note.price.toFixed(2)}</p>
+                    <div class="mb-3">${salesLabel}</div>
                     <div class="d-grid gap-2 mt-auto">
                         <button class="btn btn-outline-primary btn-sm" onclick="previewPdf(${note.id}, '${escapeHtml(note.title)}')">Preview</button>
                         <button class="btn btn-success btn-sm" onclick="downloadPdf(${note.id}, '${escapeHtml(note.title)}')">Download</button>
