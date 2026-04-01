@@ -47,13 +47,21 @@ class BuyerControllerIT {
     @Test
     void browseNotes_shouldReturnPagedData() throws Exception {
         when(noteService.browseNotes()).thenReturn(List.of(
-                NoteDto.builder().id(1L).title("Physics").description("d").category("Science").price(100.0).build()
+                NoteDto.builder()
+                        .id(1L)
+                        .title("Physics")
+                        .description("d")
+                        .category("Science")
+                        .price(100.0)
+                        .salesCount(4L)
+                        .build()
         ));
 
         mockMvc.perform(get("/api/buyer/notes").with(user("buyer@mail.com").roles("BUYER")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(1L))
-                .andExpect(jsonPath("$[0].title").value("Physics"));
+                .andExpect(jsonPath("$[0].title").value("Physics"))
+                .andExpect(jsonPath("$[0].salesCount").value(4));
     }
 
     @Test
