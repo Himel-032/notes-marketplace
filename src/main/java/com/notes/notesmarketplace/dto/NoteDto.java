@@ -21,4 +21,6 @@ public class NoteDto {
 
     private String previewImageUrl;
 
+    private Long salesCount;
+
 }

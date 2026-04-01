@@ -25,4 +25,8 @@ public interface NoteService {
     List<NoteDto> filterNotes(String category);
 
     NoteDto getNote(Long id);
+
+    Long getSalesCount(Long noteId);
+
+    List<NoteDto> getSellerNoteDtos(String sellerEmail);
 }
