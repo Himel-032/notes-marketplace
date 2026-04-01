@@ -140,6 +140,20 @@ public class NoteServiceImpl implements NoteService {
         return mapToDTO(note);
     }
 
+    @Override
+    public Long getSalesCount(Long noteId) {
+        Long count = noteRepository.countSalesByNoteId(noteId);
+        return count != null ? count : 0;
+    }
+
+    @Override
+    public List<NoteDto> getSellerNoteDtos(String sellerEmail) {
+        return getSellerNotes(sellerEmail)
+                .stream()
+                .map(this::mapToDTO)
+                .toList();
+    }
+
     private NoteDto mapToDTO(Note note) {
 
         return NoteDto.builder()
@@ -149,6 +163,7 @@ public class NoteServiceImpl implements NoteService {
                 .category(note.getCategory())
                 .price(note.getPrice())
                 .previewImageUrl(note.getPreviewImageUrl())
+                .salesCount(getSalesCount(note.getId()))
                 .build();
     }
 
