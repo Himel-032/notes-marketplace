@@ -54,7 +54,7 @@
                                     <small class="text-muted" th:text="${note.category != null ? note.category : 'General'}">Category</small>
                                 </td>
                                 <td th:text="${note.sellerEmail != null ? note.sellerEmail : 'Unknown'}">Seller</td>
-                                <td>$<span th:text="${#numbers.formatDecimal(note.price, 1, 2)}">0.00</span></td>
+                                <td>৳ <span th:text="${#numbers.formatDecimal(note.price, 1, 2)}">0.00</span></td>
                                 <td>N/A</td>
                                 <td>
                                     <div class="d-flex gap-2 justify-content-end">

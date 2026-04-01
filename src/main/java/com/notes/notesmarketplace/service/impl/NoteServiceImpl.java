@@ -14,7 +14,9 @@ import com.notes.notesmarketplace.service.PdfPreviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Map;
 import java.util.List;
+import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +26,13 @@ public class NoteServiceImpl implements NoteService {
     private final UserRepository userRepository;
     private final CloudinaryService cloudinaryService;
     private final PdfPreviewService pdfPreviewService;
+
+        // Local registry works as a lightweight factory for browsing strategies.
+        private final Map<BrowseMode, NoteBrowseStrategy> browseStrategies = Map.of(
+            BrowseMode.ALL, new BrowseAllNotesStrategy(),
+            BrowseMode.SEARCH, new SearchNotesStrategy(),
+            BrowseMode.FILTER, new FilterNotesStrategy()
+        );
 
     @Override
     public Note uploadNote(NoteUploadRequest request, String sellerEmail) {
@@ -109,31 +118,17 @@ public class NoteServiceImpl implements NoteService {
 
     @Override
     public List<NoteDto> browseNotes() {
-
-        return noteRepository.findAll()
-                .stream()
-                .map(this::mapToDTO)
-                .toList();
+        return browseStrategyFactory(BrowseMode.ALL).getNotes("", "");
     }
 
     @Override
     public List<NoteDto> searchNotes(String keyword) {
-
-        return noteRepository
-                .findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword)
-                .stream()
-                .map(this::mapToDTO)
-                .toList();
+        return browseStrategyFactory(BrowseMode.SEARCH).getNotes(keyword, "");
     }
 
     @Override
     public List<NoteDto> filterNotes(String category) {
-
-        return noteRepository
-                .findByCategoryIgnoreCase(category)
-                .stream()
-                .map(this::mapToDTO)
-                .toList();
+        return browseStrategyFactory(BrowseMode.FILTER).getNotes("", category);
     }
 
     @Override
@@ -155,6 +150,52 @@ public class NoteServiceImpl implements NoteService {
                 .price(note.getPrice())
                 .previewImageUrl(note.getPreviewImageUrl())
                 .build();
+    }
+
+    private NoteBrowseStrategy browseStrategyFactory(BrowseMode browseMode) {
+        NoteBrowseStrategy strategy = browseStrategies.get(browseMode);
+        if (strategy == null) {
+            throw new RuntimeException("Unsupported browse mode");
+        }
+        return strategy;
+    }
+
+    private enum BrowseMode {
+        ALL,
+        SEARCH,
+        FILTER
+    }
+
+    private interface NoteBrowseStrategy {
+        List<NoteDto> getNotes(String keyword, String category);
+    }
+
+    private class BrowseAllNotesStrategy implements NoteBrowseStrategy {
+        @Override
+        public List<NoteDto> getNotes(String keyword, String category) {
+            return toDtoList(noteRepository::findAll);
+        }
+    }
+
+    private class SearchNotesStrategy implements NoteBrowseStrategy {
+        @Override
+        public List<NoteDto> getNotes(String keyword, String category) {
+            return toDtoList(() -> noteRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(keyword, keyword));
+        }
+    }
+
+    private class FilterNotesStrategy implements NoteBrowseStrategy {
+        @Override
+        public List<NoteDto> getNotes(String keyword, String category) {
+            return toDtoList(() -> noteRepository.findByCategoryIgnoreCase(category));
+        }
+    }
+
+    private List<NoteDto> toDtoList(Supplier<List<Note>> notesSupplier) {
+        return notesSupplier.get()
+                .stream()
+                .map(this::mapToDTO)
+                .toList();
     }
 
 }

@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.MockedConstruction;
 import org.mockito.Mock;
+import org.mockito.ArgumentMatchers;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -25,7 +26,6 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockConstruction;
@@ -112,8 +112,12 @@ class PaymentServiceImplTest {
             Map<String, Object> body = Map.of("GatewayPageURL", "https://gateway.url/session/ok");
             ResponseEntity<Map<String, Object>> response = ResponseEntity.ok(body);
 
-            when(mock.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
-                    .thenReturn((ResponseEntity) response);
+                when(mock.exchange(
+                    anyString(),
+                    eq(HttpMethod.POST),
+                    ArgumentMatchers.<HttpEntity<?>>any(),
+                    ArgumentMatchers.<ParameterizedTypeReference<Map<String, Object>>>any()))
+                .thenReturn(response);
         })) {
             String gatewayUrl = paymentService.createPaymentSession("buyer@mail.com", 55L);
 
@@ -147,8 +151,12 @@ class PaymentServiceImplTest {
         try (MockedConstruction<RestTemplate> mocked = mockConstruction(RestTemplate.class, (mock, context) -> {
             ResponseEntity<Map<String, Object>> response = ResponseEntity.ok(Map.of("status", "FAILED"));
 
-            when(mock.exchange(anyString(), eq(HttpMethod.POST), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
-                    .thenReturn((ResponseEntity) response);
+                when(mock.exchange(
+                    anyString(),
+                    eq(HttpMethod.POST),
+                    ArgumentMatchers.<HttpEntity<?>>any(),
+                    ArgumentMatchers.<ParameterizedTypeReference<Map<String, Object>>>any()))
+                .thenReturn(response);
         })) {
             assertThatThrownBy(() -> paymentService.createPaymentSession("buyer@mail.com", 56L))
                     .isInstanceOf(RuntimeException.class)
