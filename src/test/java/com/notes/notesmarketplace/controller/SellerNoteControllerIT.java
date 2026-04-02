@@ -1,6 +1,7 @@
 package com.notes.notesmarketplace.controller;
 
 import com.notes.notesmarketplace.exception.BusinessValidationException;
+import com.notes.notesmarketplace.dto.NoteDto;
 import com.notes.notesmarketplace.dto.NoteUpdateRequest;
 import com.notes.notesmarketplace.model.Note;
 import com.notes.notesmarketplace.service.NoteService;
@@ -67,13 +68,18 @@ class SellerNoteControllerIT {
     @Test
     @WithMockUser(username = "seller@mail.com", roles = {"SELLER"})
     void getMyNotes_shouldReturnSellerNotes() throws Exception {
-        when(noteService.getSellerNotes("seller@mail.com"))
-                .thenReturn(List.of(TestDataBuilder.note(5L, "Core Spring", null)));
+        when(noteService.getSellerNoteDtos("seller@mail.com"))
+                .thenReturn(List.of(NoteDto.builder()
+                        .id(5L)
+                        .title("Core Spring")
+                        .salesCount(2L)
+                        .build()));
 
         mockMvc.perform(get("/seller/notes/my-notes").with(user("seller@mail.com").roles("SELLER")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(5L))
-                .andExpect(jsonPath("$[0].title").value("Core Spring"));
+                .andExpect(jsonPath("$[0].title").value("Core Spring"))
+                .andExpect(jsonPath("$[0].salesCount").value(2));
     }
 
     @Test

@@ -65,8 +65,13 @@ class AuthServiceTest {
 
         AuthResponse response = authService.register(request);
 
+        ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
+        verify(userRepository).save(userCaptor.capture());
+
         assertThat(response.getMessage()).isEqualTo("User registered successfully");
-        verify(userRepository).save(any(User.class));
+        assertThat(userCaptor.getValue().getRoles())
+                .extracting(Role::getRoleName)
+                .contains("BUYER");
     }
 
     @Test

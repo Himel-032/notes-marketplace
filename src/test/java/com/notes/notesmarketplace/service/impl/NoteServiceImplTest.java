@@ -159,11 +159,33 @@ class NoteServiceImplTest {
 
         when(noteRepository.findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase("java", "java"))
                 .thenReturn(List.of(titleMatch, descMatch));
+        when(noteRepository.countSalesByNoteId(9L)).thenReturn(3L);
+        when(noteRepository.countSalesByNoteId(10L)).thenReturn(0L);
 
         List<NoteDto> notes = noteService.searchNotes("java");
 
         assertThat(notes).hasSize(2);
         assertThat(notes).extracting(NoteDto::getTitle)
                 .containsExactlyInAnyOrder("Java Fundamentals", "Design Patterns");
+        assertThat(notes).extracting(NoteDto::getSalesCount)
+                .containsExactlyInAnyOrder(3L, 0L);
+    }
+
+    @Test
+    void getSalesCount_shouldReturnCountFromRepository() {
+        when(noteRepository.countSalesByNoteId(7L)).thenReturn(5L);
+
+        Long salesCount = noteService.getSalesCount(7L);
+
+        assertThat(salesCount).isEqualTo(5L);
+    }
+
+    @Test
+    void getSalesCount_shouldReturnZeroWhenRepositoryReturnsNull() {
+        when(noteRepository.countSalesByNoteId(7L)).thenReturn(null);
+
+        Long salesCount = noteService.getSalesCount(7L);
+
+        assertThat(salesCount).isZero();
     }
 }

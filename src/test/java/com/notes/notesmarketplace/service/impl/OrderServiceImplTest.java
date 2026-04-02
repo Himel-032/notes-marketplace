@@ -114,4 +114,34 @@ class OrderServiceImplTest {
 
         assertThat(orders).isEmpty();
     }
+
+    @Test
+    void hasPurchased_shouldReturnTrueWhenOrderItemExists() {
+        when(orderItemRepository.existsByOrderBuyerIdAndNoteId(10L, 20L)).thenReturn(true);
+
+        boolean purchased = orderService.hasPurchased(10L, 20L);
+
+        assertThat(purchased).isTrue();
+    }
+
+    @Test
+    void getBuyerPurchasedNotes_shouldReturnNotesFromOrderItems() {
+        User buyer = TestDataBuilder.user(10L, "buyer@mail.com", "Buyer", true, Set.of(new Role(2L, "BUYER")));
+        Note note = TestDataBuilder.note(20L, "History", buyer);
+        Order order = TestDataBuilder.order(1L, buyer, 100.0, "TRX-HISTORY");
+        OrderItem orderItem = OrderItem.builder()
+                .id(99L)
+                .order(order)
+                .note(note)
+                .price(100.0)
+                .build();
+
+        when(orderItemRepository.findByOrderBuyerId(10L)).thenReturn(List.of(orderItem));
+
+        List<Note> purchasedNotes = orderService.getBuyerPurchasedNotes(10L);
+
+        assertThat(purchasedNotes).hasSize(1);
+        assertThat(purchasedNotes.get(0).getId()).isEqualTo(20L);
+        assertThat(purchasedNotes.get(0).getTitle()).isEqualTo("History");
+    }
 }

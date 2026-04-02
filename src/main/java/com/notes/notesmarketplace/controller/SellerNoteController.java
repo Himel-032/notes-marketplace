@@ -2,6 +2,7 @@ package com.notes.notesmarketplace.controller;
 
 import com.notes.notesmarketplace.dto.NoteUpdateRequest;
 import com.notes.notesmarketplace.dto.NoteUploadRequest;
+import com.notes.notesmarketplace.dto.NoteDto;
 import com.notes.notesmarketplace.model.Note;
 import com.notes.notesmarketplace.service.NoteService;
 
@@ -39,11 +40,11 @@ public class SellerNoteController {
     }
 
     @GetMapping("/my-notes")
-    public List<Note> getMyNotes(Authentication authentication) {
+    public List<NoteDto> getMyNotes(Authentication authentication) {
 
         String email = authentication.getName();
 
-        return noteService.getSellerNotes(email);
+        return noteService.getSellerNoteDtos(email);
     }
 
     @PutMapping("/{id}")

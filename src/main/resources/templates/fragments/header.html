@@ -61,7 +61,7 @@
     <div class="header-right">
         <span class="admin-chip">
             <span class="chip-label">Signed in as</span>
-            <strong sec:authentication="name">admin@example.com</strong>
+            <strong th:text="${currentUserName}">User Name</strong>
         </span>
     </div>
 </header>
