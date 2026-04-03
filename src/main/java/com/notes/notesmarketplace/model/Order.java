@@ -21,6 +21,8 @@ public class Order {
     @Column(unique = true)
     private String transactionId;
 
+    private String orderNumber;
+
     private Double totalPrice;
 
     private String status;

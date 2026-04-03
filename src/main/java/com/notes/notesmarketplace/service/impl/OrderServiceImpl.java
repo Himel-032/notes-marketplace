@@ -41,6 +41,9 @@ public class OrderServiceImpl implements OrderService {
 
         orderRepository.save(order);
 
+        order.setOrderNumber("ORD-" + String.format("%04d", order.getId()));
+        orderRepository.save(order);
+
         OrderItem item = OrderItem.builder()
                 .order(order)
                 .note(note)
@@ -61,7 +64,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<Order> getBuyerOrders(Long buyerId) {
-        return orderRepository.findByBuyerIdOrderByCreatedAtDesc(buyerId);
+        return orderRepository.findByBuyerIdOrderByCreatedAtAsc(buyerId);
     }
 
     @Override

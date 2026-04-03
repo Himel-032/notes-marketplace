@@ -12,6 +12,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     List<Order> findByBuyerIdOrderByCreatedAtDesc(Long buyerId);
 
+    List<Order> findByBuyerIdOrderByCreatedAtAsc(Long buyerId);
+
     @Query("select coalesce(sum(o.totalPrice), 0) from Order o where o.status = 'PAID'")
     double getTotalSales();
 
