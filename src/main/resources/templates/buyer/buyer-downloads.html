@@ -112,22 +112,12 @@
             });
         }
 
-        async function viewPdf(noteId) {
-            try {
-                window.open(`/api/buyer/notes/${noteId}/full-preview`, '_blank');
-            } catch (error) {
-                console.error('Error viewing PDF:', error);
-                alert('Error viewing PDF. Please try again.');
-            }
+        function viewPdf(noteId) {
+            window.open(`/api/buyer/notes/${noteId}/full-preview`, '_blank');
         }
 
-        async function downloadPdf(noteId, title) {
-            try {
-                window.location.href = `/api/buyer/notes/${noteId}/download`;
-            } catch (error) {
-                console.error('Error downloading PDF:', error);
-                alert('Error downloading PDF. Please try again.');
-            }
+        function downloadPdf(noteId, title) {
+            window.location.href = `/api/buyer/notes/${noteId}/download`;
         }
     </script>
 </body>
