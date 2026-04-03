@@ -13,6 +13,11 @@ import com.notes.notesmarketplace.repository.UserRepository;
 import com.notes.notesmarketplace.service.AdminService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,6 +27,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.io.IOException;
+import java.net.URI;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -130,6 +137,25 @@ public class AdminPageController {
         model.addAttribute("q", q);
 
         return "admin/notes";
+    }
+
+    @GetMapping("/notes/view/{id}")
+    public ResponseEntity<byte[]> viewNotePdf(@PathVariable Long id) throws IOException {
+        Note note = noteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Note not found"));
+
+        byte[] pdfBytes = URI.create(note.getPdfUrl()).toURL().openStream().readAllBytes();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(
+                ContentDisposition.inline()
+                        .filename(note.getTitle() + ".pdf")
+                        .build()
+        );
+        headers.setContentLength(pdfBytes.length);
+
+        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
     }
 
     @PostMapping("/notes/{id}/delete")

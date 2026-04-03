@@ -58,7 +58,7 @@
                                 <td>N/A</td>
                                 <td>
                                     <div class="d-flex gap-2 justify-content-end">
-                                        <a class="btn btn-sm btn-outline-primary" th:href="${note.pdfUrl}" target="_blank" rel="noopener noreferrer">View PDF</a>
+                                        <a class="btn btn-sm btn-outline-primary" th:href="@{/admin/notes/view/{id}(id=${note.id})}" target="_blank" rel="noopener noreferrer">View PDF</a>
                                         <form method="post" th:action="@{/admin/notes/{id}/delete(id=${note.id})}"
                                               data-confirm="Delete this note permanently?">
                                             <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
