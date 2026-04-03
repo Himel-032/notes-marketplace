@@ -53,7 +53,7 @@
                                 <td colspan="5" class="text-center text-muted py-4">No orders found.</td>
                             </tr>
                             <tr th:each="order : ${orders}">
-                                <td th:text="${order.id}">1</td>
+                                <td th:text="${order.orderNumber != null ? order.orderNumber : 'ORD-' + order.id}">ORD-0001</td>
                                 <td th:text="${order.buyer != null ? order.buyer.name : 'N/A'}">Buyer</td>
                                 <td>৳ <span th:text="${#numbers.formatDecimal(order.totalPrice, 1, 2)}">0.00</span></td>
                                 <td>
