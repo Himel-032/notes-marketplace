@@ -8,6 +8,7 @@ import com.notes.notesmarketplace.service.NoteService;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -97,10 +98,11 @@ public class SellerNoteController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.add("Content-Disposition", "inline; filename=\"" + note.getTitle() + ".pdf\"");
-        headers.setCacheControl("no-cache, no-store, must-revalidate");
-        headers.setPragma("no-cache");
-        headers.setExpires(0);
+        headers.setContentDisposition(
+                ContentDisposition.inline()
+                        .filename(note.getTitle() + ".pdf")
+                        .build()
+        );
         headers.setContentLength(pdfBytes.length);
 
         return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
@@ -131,7 +133,11 @@ public class SellerNoteController {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDispositionFormData("attachment", note.getTitle() + ".pdf");
+        headers.setContentDisposition(
+                ContentDisposition.attachment()
+                        .filename(note.getTitle() + ".pdf")
+                        .build()
+        );
         headers.setContentLength(pdfBytes.length);
 
         return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
