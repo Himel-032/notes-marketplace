@@ -1,6 +1,5 @@
 package com.notes.notesmarketplace.controller;
 
-import com.notes.notesmarketplace.model.User;
 import com.notes.notesmarketplace.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;

@@ -105,7 +105,7 @@ class AdminServiceImplTest {
         when(userRepository.findById(9L)).thenReturn(Optional.of(buyer));
         when(userRepository.save(buyer)).thenReturn(buyer);
 
-        AdminUserDto updated = adminService.updateUserStatus(9L, true);
+        AdminUserDto updated = adminService.updateUserStatus(9L, true, "admin@mail.com");
 
         assertThat(updated.isEnabled()).isTrue();
         assertThat(updated.getId()).isEqualTo(9L);

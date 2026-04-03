@@ -25,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -53,21 +54,26 @@ class OrderServiceImplTest {
 
         when(userRepository.findById(10L)).thenReturn(Optional.of(buyer));
         when(noteRepository.findById(20L)).thenReturn(Optional.of(note));
-        when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArgument(0));
+        when(orderRepository.save(any(Order.class))).thenAnswer(i -> {
+            Order o = i.getArgument(0);
+            if (o.getId() == null) o.setId(1L); // simulate JPA ID assignment
+            return o;
+        });
         when(orderItemRepository.save(any(OrderItem.class))).thenAnswer(i -> i.getArgument(0));
 
         Order created = orderService.createOrder(10L, 20L, "TRX-1");
 
         assertThat(created.getTransactionId()).isEqualTo("TRX-1");
         assertThat(created.getTotalPrice()).isEqualTo(100.0);
-        verify(orderRepository).save(any(Order.class));
+        assertThat(created.getOrderNumber()).isEqualTo("ORD-0001");
+        verify(orderRepository, times(2)).save(any(Order.class));
         verify(orderItemRepository).save(any(OrderItem.class));
     }
 
     @Test
     void getOrderById() {
         User buyer = TestDataBuilder.user(7L, "buyer@mail.com", "Buyer", true, Set.of(new Role(2L, "BUYER")));
-        when(orderRepository.findByBuyerIdOrderByCreatedAtDesc(7L))
+        when(orderRepository.findByBuyerIdOrderByCreatedAtAsc(7L))
                 .thenReturn(List.of(TestDataBuilder.order(1L, buyer, 120.0, "TRX-2")));
 
         List<Order> orders = orderService.getBuyerOrders(7L);
@@ -84,7 +90,11 @@ class OrderServiceImplTest {
 
         when(userRepository.findById(10L)).thenReturn(Optional.of(buyer));
         when(noteRepository.findById(20L)).thenReturn(Optional.of(note));
-        when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArgument(0));
+        when(orderRepository.save(any(Order.class))).thenAnswer(i -> {
+            Order o = i.getArgument(0);
+            if (o.getId() == null) o.setId(2L);
+            return o;
+        });
         when(orderItemRepository.save(any(OrderItem.class))).thenAnswer(i -> i.getArgument(0));
 
         Order order = orderService.createOrder(10L, 20L, "TRX-250");
@@ -108,7 +118,7 @@ class OrderServiceImplTest {
 
     @Test
     void getOrdersByUser_notFound() {
-        when(orderRepository.findByBuyerIdOrderByCreatedAtDesc(9999L)).thenReturn(List.of());
+        when(orderRepository.findByBuyerIdOrderByCreatedAtAsc(9999L)).thenReturn(List.of());
 
         List<Order> orders = orderService.getBuyerOrders(9999L);
 

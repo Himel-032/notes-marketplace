@@ -26,6 +26,8 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    private String phone;
+
     private boolean enabled = true;
 
     @ManyToMany(fetch = FetchType.EAGER)

@@ -24,6 +24,259 @@ Digital Notes Marketplace is a full-stack web application designed to help stude
 
 The system is built around a role-based access model:
 
+- **Admin** manages users, notes, platform analytics, and administrative operations.
+- **Seller** uploads notes, manages note listings, and monitors note sales.
+- **Buyer** browses notes, places orders, completes payments, and downloads purchased notes.
+
+---
+
+## ✨ Features
+
+### Core Features
+- Role-based dashboards for Admin, Seller, and Buyer
+- Secure login and registration (BCrypt password hashing)
+- Note upload with PDF storage via Cloudinary
+- Browse, search, and filter notes
+- SSLCommerz payment gateway integration
+- Order creation and download management
+
+### New Features (Latest Release)
+- **Sales Analytics** — Admin can view total users, notes, revenue, and sales charts over time
+- **Profile Editing** — All users (Admin, Seller, Buyer) can update their name, phone, and password via `/profile`
+- **Order Number System** — Orders are assigned human-readable numbers (e.g. `ORD-0001`) displayed in order history
+- **Admin Self-Disable Protection** — Admin cannot disable their own account from User Management
+
+---
+
+## 🏗️ Architecture Overview
+
+The application follows a **layered architecture** to keep responsibilities clean, maintainable, and testable.
+
+### Core Layers
+
+| Layer | Responsibility |
+|---|---|
+| **Controller** | Accepts HTTP requests, validates incoming data, returns views or API responses |
+| **Service** | Contains business logic such as authentication, note management, payments, and order processing |
+| **Repository** | Communicates with the database using Spring Data JPA |
+| **Model** | Represents persistent domain entities such as `User`, `Note`, `Order`, and `Role` |
+| **DTO** | Transfers structured data between backend layers and frontend/API consumers |
+
+### Request Flow
+
+```text
+User → Controller → Service → Repository → Database
+```
+
+---
+
+## 🧠 Design Patterns Used
+
+| Pattern | Where Used |
+|---|---|
+| **Service Layer** | `AuthService`, `NoteService`, `OrderService`, `PaymentService` |
+| **Repository** | `UserRepository`, `NoteRepository`, `OrderRepository` |
+| **DTO** | `NoteDto`, `AuthResponse`, `RegisterRequest`, `AdminUserDto` |
+| **MVC** | Controllers + Thymeleaf templates + JPA models |
+| **Singleton** | All Spring beans (controllers, services, repositories) |
+| **Strategy** | `PaymentServiceImpl` (payment strategy), `NoteServiceImpl` (browse modes) |
+
+---
+
+## 🗄️ Database Design
+
+### Main Tables
+
+| Table | Purpose |
+|---|---|
+| **users** | Stores user profile, email, phone, password, and account state |
+| **roles** | Stores role definitions: `ADMIN`, `SELLER`, `BUYER` |
+| **notes** | Stores note metadata, price, PDF URL, and seller reference |
+| **orders** | Stores purchase details including `orderNumber`, total price, and transaction ID |
+| **order_items** | Stores purchased note entries linked to an order |
+
+### Relationships
+
+- **User ↔ Role**: Many-to-Many
+- **User → Note**: One-to-Many (seller uploads)
+- **User → Order**: One-to-Many (buyer purchases)
+- **Order → OrderItem**: One-to-Many
+- **Note → OrderItem**: One-to-Many
+
+---
+
+## 🔐 Authentication & Security
+
+| Feature | Detail |
+|---|---|
+| Spring Security | Route protection and role-based authorization |
+| BCrypt | Secure password hashing |
+| RBAC | Strict role-to-route mapping for Admin, Seller, Buyer |
+| Admin Protection | Admin cannot disable own account |
+| Custom Success Handler | Redirects each role to its respective dashboard after login |
+
+---
+
+## 🌐 API Endpoints
+
+### Auth
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+
+### Notes
+- `GET /api/buyer/notes`
+- `GET /api/buyer/notes/search?keyword=...`
+- `GET /api/buyer/notes/filter?category=...`
+- `GET /api/buyer/notes/{id}`
+- `POST /seller/notes/upload`
+- `PUT /seller/notes/{id}`
+- `DELETE /seller/notes/{id}`
+
+### Orders
+- `GET /api/buyer/my-orders`
+- `GET /api/buyer/my-downloads`
+- `POST /api/payment/success`
+
+### Admin
+- `GET /api/admin/users`
+- `DELETE /api/admin/users/{id}`
+- `PUT /api/admin/users/{id}/status`
+- `GET /api/admin/notes`
+- `DELETE /api/admin/notes/{id}`
+- `GET /api/admin/analytics`
+
+### Profile (all authenticated roles)
+- `GET /profile`
+- `POST /profile/update`
+
+For the complete route reference, see `API_ENDPOINTS.md`.
+
+---
+
+## 💳 Payment Integration
+
+The project integrates **SSLCommerz** for online payment processing.
+
+1. A buyer selects a note.
+2. The application creates a payment session via SSLCommerz API.
+3. The buyer is redirected to the payment gateway.
+4. On success, the application creates an order with a unique `orderNumber` and stores purchased note details.
+5. The buyer can then access and download the purchased note.
+
+---
+
+## 🧪 Testing
+
+### Tools
+- JUnit 5, Mockito, MockMvc, Spring Boot Test, H2 (test DB)
+
+### Coverage Areas
+- Service layer (Auth, Admin, Note, Order, Payment)
+- Controller integration tests (all major endpoints)
+- Repository query validation
+- End-to-end marketplace flow
+
+```bash
+./mvnw test
+```
+
+---
+
+## 🐳 Docker Setup
+
+```bash
+docker compose up --build
+```
+
+Starts **PostgreSQL 16** and the **Spring Boot app** on port `8080`.
+
+### Required `.env` Variables
+
+```env
+SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/notesmarketplace
+SPRING_DATASOURCE_USERNAME=your_db_user
+SPRING_DATASOURCE_PASSWORD=your_db_password
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+SSLCOMMERZ_STORE_ID=...
+SSLCOMMERZ_STORE_PASSWORD=...
+SSLCOMMERZ_BASE_URL=https://sandbox.sslcommerz.com
+SSLCOMMERZ_SUCCESS_URL=http://localhost:8080/api/payment/success
+SSLCOMMERZ_FAIL_URL=http://localhost:8080/api/payment/fail
+SSLCOMMERZ_CANCEL_URL=http://localhost:8080/api/payment/cancel
+```
+
+---
+
+## 🚀 Tech Stack
+
+| Category | Technology |
+|---|---|
+| Backend | Spring Boot 4, Spring MVC, Spring Data JPA, Spring Security |
+| Frontend | Thymeleaf, Bootstrap 5, HTML, CSS, JavaScript |
+| Database | PostgreSQL 16 |
+| Testing | JUnit 5, Mockito, MockMvc, H2 |
+| Payment | SSLCommerz |
+| File Storage | Cloudinary |
+| DevOps | Docker, Docker Compose, Maven |
+
+---
+
+## 🔑 Demo Credentials
+
+After starting the application, a default admin account is automatically created:
+
+| Field | Value |
+|---|---|
+| **Role** | Admin |
+| **Email** | `admin@gmail.com` |
+| **Password** | `admin123` |
+
+> You can register Buyer and Seller accounts through the `/register` page.
+
+---
+
+## 📂 Project Highlights
+
+- Role-based dashboards for Admin, Seller, and Buyer
+- Secure login and registration with BCrypt
+- Upload, browse, buy, and download notes
+- SSLCommerz payment gateway integration
+- Sales analytics with revenue charts
+- Human-readable order numbers (`ORD-0001`, `ORD-0002`, ...)
+- Full profile editing for all roles
+- Admin self-disable protection
+- DTO-based API responses
+- Unit and integration test coverage
+- Dockerized deployment support
+
+---
+
+## 🎓 Academic Value
+
+This project demonstrates practical application of:
+
+- Software design patterns (Service Layer, Repository, Strategy, MVC)
+- Layered system architecture
+- Secure full-stack web development
+- REST API design
+- Payment gateway integration
+- Automated testing and verification
+- Containerized deployment
+
+Suitable for **university project evaluation**, **software engineering coursework**, and **GitHub portfolio presentation**.
+
+
+---
+
+## 📌 Project Description
+
+Digital Notes Marketplace is a full-stack web application designed to help students share and monetize academic resources in a structured and secure way. The platform allows users to upload notes, explore available study materials, purchase premium content, and download notes after successful payment.
+
+The system is built around a role-based access model:
+
 - **Admin** manages users, platform oversight, and administrative operations.
 - **Seller** uploads notes, manages note listings, and monitors note sales.
 - **Buyer** browses notes, places orders, completes payments, and downloads purchased notes.

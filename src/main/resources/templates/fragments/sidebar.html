@@ -31,6 +31,9 @@
         <a class="sidebar-link" th:classappend="${activePage == 'analytics'} ? ' active'" th:href="@{/admin/analytics}" sec:authorize="hasRole('ADMIN')">
             <span>Analytics</span>
         </a>
+        <a class="sidebar-link" th:classappend="${activePage == 'profile-admin'} ? ' active'" th:href="@{/profile}" sec:authorize="hasRole('ADMIN')">
+            <span>Edit Profile</span>
+        </a>
 
         <a class="sidebar-link" th:classappend="${activePage == 'seller-dashboard'} ? ' active'" th:href="@{/seller/dashboard}" sec:authorize="hasRole('SELLER')">
             <span>Dashboard</span>
@@ -40,6 +43,9 @@
         </a>
         <a class="sidebar-link" th:classappend="${activePage == 'seller-notes'} ? ' active'" th:href="@{/seller/notes}" sec:authorize="hasRole('SELLER')">
             <span>My Notes</span>
+        </a>
+        <a class="sidebar-link" th:classappend="${activePage == 'seller-profile'} ? ' active'" th:href="@{/profile}" sec:authorize="hasRole('SELLER')">
+            <span>Edit Profile</span>
         </a>
 
         <a class="sidebar-link" th:classappend="${activePage == 'buyer-dashboard'} ? ' active'" th:href="@{/buyer/dashboard}" sec:authorize="hasRole('BUYER')">
@@ -53,6 +59,9 @@
         </a>
         <a class="sidebar-link" th:classappend="${activePage == 'buyer-downloads'} ? ' active'" th:href="@{/buyer/my-downloads}" sec:authorize="hasRole('BUYER')">
             <span>Downloads</span>
+        </a>
+        <a class="sidebar-link" th:classappend="${activePage == 'buyer-profile'} ? ' active'" th:href="@{/profile}" sec:authorize="hasRole('BUYER')">
+            <span>Edit Profile</span>
         </a>
     </nav>
 

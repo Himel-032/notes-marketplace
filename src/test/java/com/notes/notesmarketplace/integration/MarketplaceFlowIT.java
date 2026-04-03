@@ -122,7 +122,7 @@ class MarketplaceFlowIT {
 
     @Test
     void authApi_shouldRegisterAndLoginUserFlow() throws Exception {
-        roleRepository.save(new Role(null, "BUYER"));
+        // BUYER role is seeded by DataInitializer at startup; no need to insert it again
 
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)

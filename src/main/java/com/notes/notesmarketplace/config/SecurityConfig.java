@@ -42,6 +42,7 @@ public class SecurityConfig {
                 .requestMatchers("/", "/login", "/register", "/api/auth/**", "/hello").permitAll()
                 .requestMatchers("/api/payment/success", "/api/payment/fail", "/api/payment/cancel").permitAll()
                 .requestMatchers("/payment/**").permitAll()
+                .requestMatchers("/profile", "/profile/update").authenticated()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/seller/**").hasRole("SELLER")

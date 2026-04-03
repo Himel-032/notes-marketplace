@@ -1,11 +1,13 @@
 package com.notes.notesmarketplace.controller;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.notes.notesmarketplace.model.Role;
 import com.notes.notesmarketplace.model.User;
@@ -116,6 +118,42 @@ public class WebController {
     @GetMapping("/buyer/orders")
     public String buyerOrders() {
         return "buyer/buyer-orders";
+    }
+
+    @GetMapping("/profile")
+    public String profilePage(Authentication authentication, Model model) {
+        User user = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        model.addAttribute("user", user);
+        return "profile";
+    }
+
+    @PostMapping("/profile/update")
+    public String updateProfile(
+            Authentication authentication,
+            @RequestParam String name,
+            @RequestParam(required = false) String phone,
+            @RequestParam(required = false) String password,
+            RedirectAttributes redirectAttributes) {
+        try {
+            User user = userRepository.findByEmail(authentication.getName())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            if (name != null && !name.isBlank()) {
+                user.setName(name.trim());
+            }
+            user.setPhone(phone != null ? phone.trim() : null);
+
+            if (password != null && !password.isBlank()) {
+                user.setPassword(passwordEncoder.encode(password));
+            }
+
+            userRepository.save(user);
+            redirectAttributes.addFlashAttribute("success", "Profile updated successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to update profile: " + e.getMessage());
+        }
+        return "redirect:/profile";
     }
 
     @GetMapping("/payment/success")

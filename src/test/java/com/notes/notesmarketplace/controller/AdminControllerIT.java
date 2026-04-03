@@ -100,7 +100,7 @@ class AdminControllerIT {
                 .enabled(false)
                 .roles(Set.of("BUYER"))
                 .build();
-        when(adminService.updateUserStatus(7L, false)).thenReturn(updated);
+        when(adminService.updateUserStatus(7L, false, "admin@mail.com")).thenReturn(updated);
 
         mockMvc.perform(put("/api/admin/users/7/status")
                 .with(user("admin@mail.com").roles("ADMIN"))
