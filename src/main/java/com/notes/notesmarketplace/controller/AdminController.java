@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,9 +46,10 @@ public class AdminController {
     @PreAuthorize("hasRole('ADMIN')")
     public AdminUserDto updateUserStatus(
             @PathVariable("id") @Positive Long id,
-            @Valid @RequestBody UserStatusUpdateRequest request
+            @Valid @RequestBody UserStatusUpdateRequest request,
+            Authentication authentication
     ) {
-        return adminService.updateUserStatus(id, request.getEnabled());
+        return adminService.updateUserStatus(id, request.getEnabled(), authentication.getName());
     }
 
     @GetMapping("/notes")

@@ -12,7 +12,7 @@ public interface AdminService {
 
     void deleteUser(Long userId);
 
-    AdminUserDto updateUserStatus(Long userId, boolean enabled);
+    AdminUserDto updateUserStatus(Long userId, boolean enabled, String currentAdminEmail);
 
     Page<AdminNoteDto> getNotes(Pageable pageable);
 

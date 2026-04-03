@@ -58,9 +58,13 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     @Transactional
-    public AdminUserDto updateUserStatus(Long userId, boolean enabled) {
+    public AdminUserDto updateUserStatus(Long userId, boolean enabled, String currentAdminEmail) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+        if (!enabled && user.getEmail().equals(currentAdminEmail)) {
+            throw new BusinessValidationException("Admin cannot disable their own account");
+        }
 
         user.setEnabled(enabled);
         return toUserDto(userRepository.save(user));

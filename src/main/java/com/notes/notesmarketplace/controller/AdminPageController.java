@@ -109,9 +109,16 @@ public class AdminPageController {
     }
 
     @PostMapping("/users/{id}/toggle")
-    public String toggleUserStatus(@PathVariable Long id) {
+    public String toggleUserStatus(@PathVariable Long id, org.springframework.security.core.Authentication authentication, org.springframework.web.servlet.mvc.support.RedirectAttributes redirectAttributes) {
         Optional<User> user = userRepository.findById(id);
-        user.ifPresent(value -> adminService.updateUserStatus(id, !value.isEnabled()));
+        if (user.isPresent()) {
+            try {
+                adminService.updateUserStatus(id, !user.get().isEnabled(), authentication.getName());
+            } catch (com.notes.notesmarketplace.exception.BusinessValidationException e) {
+                redirectAttributes.addFlashAttribute("error", e.getMessage());
+                return "redirect:/admin/users";
+            }
+        }
         return "redirect:/admin/users?updated=true";
     }
 
@@ -170,7 +177,7 @@ public class AdminPageController {
             Model model
     ) {
         List<Order> orders = orderRepository.findAll().stream()
-                .sorted(Comparator.comparing(Order::getCreatedAt, Comparator.nullsLast(LocalDateTime::compareTo)).reversed())
+                .sorted(Comparator.comparing(Order::getCreatedAt, Comparator.nullsLast(LocalDateTime::compareTo)))
                 .filter(order -> matchesOrderStatus(order, status))
                 .toList();
 
