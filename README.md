@@ -677,6 +677,30 @@ It is well suited for **university project evaluation**, **software engineering 
 
 ---
 
+🟢 Integration Tests
+AdminControllerIT.java
+AuthControllerIT.java
+BuyerControllerIT.java
+OrderControllerIT.java
+PaymentControllerIT.java
+SellerNoteControllerIT.java
+MarketplaceFlowIT.java
+NotesmarketplaceApplicationTests.java
+NoteRepositoryTest.java   (acts as integration test)
+
+🔵 Unit Tests
+
+AuthServiceTest.java
+AdminServiceImplTest.java
+NoteServiceImplTest.java
+OrderServiceImplTest.java
+PaymentServiceImplTest.java
+GlobalModelControllerTest.java
+
+🟡 Support Files
+TestDataBuilder.java
+application-test.yml
+
 ## 📬 Closing Note
 
 Digital Notes Marketplace is a strong example of how modern Spring Boot applications can combine security, clean architecture, real-world business flow, and maintainable testing in a student-focused product.
