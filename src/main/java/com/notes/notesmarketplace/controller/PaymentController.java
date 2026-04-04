@@ -1,13 +1,19 @@
 package com.notes.notesmarketplace.controller;
 
-import com.notes.notesmarketplace.dto.PaymentRequest;
-import com.notes.notesmarketplace.service.OrderService;
-import com.notes.notesmarketplace.service.PaymentService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.notes.notesmarketplace.dto.PaymentRequest;
+import com.notes.notesmarketplace.service.OrderService;
+import com.notes.notesmarketplace.service.PaymentService;
+
+import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequestMapping("/api/payment")
@@ -74,7 +80,7 @@ public class PaymentController {
     public String paymentCancel(
             @RequestParam String tran_id
     ) {
-        // Clean up pending payment
+        // Clean up pending payment on cancellation as well to prevent stale entries
         paymentService.removePendingPayment(tran_id);
 
         return "redirect:/payment/cancelled?tran_id=" + tran_id;
