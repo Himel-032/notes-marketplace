@@ -1,22 +1,23 @@
 package com.notes.notesmarketplace.service.impl;
 
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
+
+import org.springframework.stereotype.Service;
+
+import com.notes.notesmarketplace.dto.NoteDto;
 import com.notes.notesmarketplace.dto.NoteUpdateRequest;
 import com.notes.notesmarketplace.dto.NoteUploadRequest;
-import com.notes.notesmarketplace.dto.NoteDto;
 import com.notes.notesmarketplace.model.Note;
 import com.notes.notesmarketplace.model.User;
 import com.notes.notesmarketplace.repository.NoteRepository;
 import com.notes.notesmarketplace.repository.UserRepository;
 import com.notes.notesmarketplace.service.CloudinaryService;
 import com.notes.notesmarketplace.service.NoteService;
-
 import com.notes.notesmarketplace.service.PdfPreviewService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
-import java.util.Map;
-import java.util.List;
-import java.util.function.Supplier;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -44,10 +45,10 @@ public class NoteServiceImpl implements NoteService {
         User seller = userRepository.findByEmail(sellerEmail)
                 .orElseThrow(() -> new RuntimeException("Seller not found"));
 
-        // 1️⃣ Generate preview image from PDF
+        //  Generate preview image from PDF
         byte[] previewBytes = pdfPreviewService.generateFirstPagePreview(request.getFile());
 
-        // 2️⃣ Upload preview image to Cloudinary
+        //  Upload preview image to Cloudinary
         String previewUrl = cloudinaryService.uploadImage(previewBytes);
 
         String pdfUrl = cloudinaryService.uploadPdf(request.getFile());
