@@ -681,8 +681,3 @@ It is well suited for **university project evaluation**, **software engineering 
 
 Digital Notes Marketplace is a strong example of how modern Spring Boot applications can combine security, clean architecture, real-world business flow, and maintainable testing in a student-focused product.
 
-If you want, I can also generate:
-
-1. a shorter GitHub-style README version,
-2. a version with screenshots/placeholders,
-3. or a README with installation and local setup commands added in more detail.
