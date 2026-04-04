@@ -1,12 +1,10 @@
 package com.notes.notesmarketplace.controller;
 
-import com.notes.notesmarketplace.dto.NoteUpdateRequest;
-import com.notes.notesmarketplace.dto.NoteUploadRequest;
-import com.notes.notesmarketplace.dto.NoteDto;
-import com.notes.notesmarketplace.model.Note;
-import com.notes.notesmarketplace.service.NoteService;
-
-import lombok.RequiredArgsConstructor;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URLConnection;
+import java.util.List;
 
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -14,13 +12,23 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URLConnection;
-import java.util.List;
+import com.notes.notesmarketplace.dto.NoteDto;
+import com.notes.notesmarketplace.dto.NoteUpdateRequest;
+import com.notes.notesmarketplace.dto.NoteUploadRequest;
+import com.notes.notesmarketplace.model.Note;
+import com.notes.notesmarketplace.service.NoteService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/seller/notes")
@@ -122,7 +130,7 @@ public class SellerNoteController {
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Note not found or unauthorized"));
 
-        // Fetch PDF from Cloudinary
+        // Fetch PDF from Cloudinary directly as bytes to avoid memory issues with large files
         URI pdfUri = URI.create(note.getPdfUrl());
         URLConnection connection = pdfUri.toURL().openConnection();
 
