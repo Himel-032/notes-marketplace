@@ -1,4 +1,4 @@
-# 📘 Digital Notes Marketplace
+# Digital Notes Marketplace
 
 > A role-based academic marketplace where students can upload, browse, purchase, and download study notes through a secure Spring Boot web platform.
 
@@ -11,678 +11,651 @@
 
 ---
 
-## 👨‍💻 Authors
+## Authors
 
-- Md Himel
-- Ariyan Aftab Spandan
+- **Md Himel**
+- **Ariyan Aftab Spandan**
 
 ---
 
-## 📌 Project Description
+## Table of Contents
+
+1. [Project Description](#-project-description)
+2. [Architecture Diagram](#-architecture-diagram)
+3. [Entity Relationship Diagram](#-entity-relationship-diagram)
+4. [API Endpoints](#-api-endpoints)
+5. [Design Patterns](#-design-patterns)
+6. [Run Instructions](#-run-instructions)
+7. [CI/CD Pipeline](#-cicd-pipeline)
+8. [Tech Stack](#-tech-stack)
+
+---
+
+## Project Description
 
 Digital Notes Marketplace is a full-stack web application designed to help students share and monetize academic resources in a structured and secure way. The platform allows users to upload notes, explore available study materials, purchase premium content, and download notes after successful payment.
 
-The system is built around a role-based access model:
+### Role-Based Access Model
 
-- **Admin** manages users, notes, platform analytics, and administrative operations.
-- **Seller** uploads notes, manages note listings, and monitors note sales.
-- **Buyer** browses notes, places orders, completes payments, and downloads purchased notes.
+The system is built around three distinct user roles:
 
----
+- **Admin** — Manages users, notes, platform analytics, and administrative operations
+- **Seller** — Uploads notes, manages note listings, and monitors note sales
+- **Buyer** — Browses notes, places orders, completes payments, and downloads purchased notes
 
-## ✨ Features
+### Key Features
 
-### Core Features
-- Role-based dashboards for Admin, Seller, and Buyer
-- Secure login and registration (BCrypt password hashing)
-- Note upload with PDF storage via Cloudinary
-- Browse, search, and filter notes
-- SSLCommerz payment gateway integration
-- Order creation and download management
-
-### New Features (Latest Release)
-- **Sales Analytics** — Admin can view total users, notes, revenue, and sales charts over time
-- **Profile Editing** — All users (Admin, Seller, Buyer) can update their name, phone, and password via `/profile`
-- **Order Number System** — Orders are assigned human-readable numbers (e.g. `ORD-0001`) displayed in order history
-- **Admin Self-Disable Protection** — Admin cannot disable their own account from User Management
+-> Role-based dashboards for Admin, Seller, and Buyer  
+-> Secure login and registration (BCrypt password hashing)  
+-> Note upload with PDF storage via Cloudinary  
+-> Browse, search, and filter notes by category  
+-> SSLCommerz payment gateway integration  
+-> Order creation and download management  
+-> Sales analytics with revenue charts  
+-> Profile editing for all user roles  
+-> Human-readable order numbers (`ORD-0001`, `ORD-0002`, ...)  
 
 ---
 
-## 🏗️ Architecture Overview
+## Architecture Diagram
 
-The application follows a **layered architecture** to keep responsibilities clean, maintainable, and testable.
+The application follows a **layered architecture** pattern to ensure clean separation of concerns, maintainability, and testability.
 
-### Core Layers
+```mermaid
+graph TB
+    subgraph "Presentation Layer"
+        UI[Thymeleaf Templates + Bootstrap]
+        CTRL[Controllers<br/>AuthController, BuyerController<br/>SellerNoteController, AdminController]
+    end
+    
+    subgraph "Business Logic Layer"
+        SVC[Services<br/>AuthService, NoteService<br/>OrderService, PaymentService]
+    end
+    
+    subgraph "Data Access Layer"
+        REPO[Repositories<br/>UserRepository, NoteRepository<br/>OrderRepository, RoleRepository]
+        DTO[DTOs<br/>NoteDto, AuthResponse<br/>RegisterRequest, PaymentRequest]
+    end
+    
+    subgraph "External Services"
+        CLOUDINARY[Cloudinary<br/>File Storage]
+        SSLCOMMERZ[SSLCommerz<br/>Payment Gateway]
+    end
+    
+    subgraph "Data Layer"
+        DB[(PostgreSQL Database)]
+    end
+    
+    UI --> CTRL
+    CTRL --> SVC
+    SVC --> REPO
+    SVC --> DTO
+    REPO --> DB
+    SVC --> CLOUDINARY
+    SVC --> SSLCOMMERZ
+    
+    style UI fill:#e1f5ff
+    style CTRL fill:#fff4e1
+    style SVC fill:#e8f5e9
+    style REPO fill:#f3e5f5
+    style DB fill:#ffebee
+    style CLOUDINARY fill:#fff9c4
+    style SSLCOMMERZ fill:#fff9c4
+```
 
-| Layer | Responsibility |
-|---|---|
-| **Controller** | Accepts HTTP requests, validates incoming data, returns views or API responses |
-| **Service** | Contains business logic such as authentication, note management, payments, and order processing |
-| **Repository** | Communicates with the database using Spring Data JPA |
-| **Model** | Represents persistent domain entities such as `User`, `Note`, `Order`, and `Role` |
-| **DTO** | Transfers structured data between backend layers and frontend/API consumers |
+### Layer Responsibilities
+
+| Layer | Components | Responsibility |
+|-------|-----------|----------------|
+| **Presentation** | Controllers, Thymeleaf Templates | Handle HTTP requests, validate input, render views |
+| **Business Logic** | Services | Implement business rules, orchestrate workflows |
+| **Data Access** | Repositories, DTOs | Manage database operations, map entities to DTOs |
+| **External Services** | Cloudinary, SSLCommerz | Handle file storage and payment processing |
+| **Data** | PostgreSQL | Persist application data |
 
 ### Request Flow
 
 ```text
-User → Controller → Service → Repository → Database
+User Request → Controller → Service → Repository → Database
+                    ↓           ↓
+                  View    External APIs
 ```
 
 ---
 
-## 🧠 Design Patterns Used
+## Entity Relationship Diagram
 
-| Pattern | Where Used |
-|---|---|
-| **Service Layer** | `AuthService`, `NoteService`, `OrderService`, `PaymentService` |
-| **Repository** | `UserRepository`, `NoteRepository`, `OrderRepository` |
-| **DTO** | `NoteDto`, `AuthResponse`, `RegisterRequest`, `AdminUserDto` |
-| **MVC** | Controllers + Thymeleaf templates + JPA models |
-| **Singleton** | All Spring beans (controllers, services, repositories) |
-| **Strategy** | `PaymentServiceImpl` (payment strategy), `NoteServiceImpl` (browse modes) |
+The database schema is designed to support role-based access, note management, order processing, and payment tracking.
 
----
+```mermaid
+erDiagram
+    USER ||--o{ NOTE : "uploads"
+    USER ||--o{ ORDER : "places"
+    USER }o--o{ ROLE : "has"
+    ORDER ||--o{ ORDER_ITEM : "contains"
+    NOTE ||--o{ ORDER_ITEM : "purchased_in"
+    
+    USER {
+        bigint id PK
+        string name
+        string email UK
+        string phone
+        string password
+        boolean enabled
+        timestamp created_at
+    }
+    
+    ROLE {
+        bigint id PK
+        string name UK
+        string description
+    }
+    
+    NOTE {
+        bigint id PK
+        string title
+        string description
+        string category
+        decimal price
+        string file_url
+        string preview_url
+        bigint seller_id FK
+        int sales_count
+        timestamp uploaded_at
+    }
+    
+    ORDER {
+        bigint id PK
+        string order_number UK
+        bigint buyer_id FK
+        decimal total_price
+        string transaction_id
+        string payment_status
+        timestamp created_at
+    }
+    
+    ORDER_ITEM {
+        bigint id PK
+        bigint order_id FK
+        bigint note_id FK
+        decimal price_at_purchase
+    }
+```
 
-## 🗄️ Database Design
+### Key Relationships
 
-### Main Tables
-
-| Table | Purpose |
-|---|---|
-| **users** | Stores user profile, email, phone, password, and account state |
-| **roles** | Stores role definitions: `ADMIN`, `SELLER`, `BUYER` |
-| **notes** | Stores note metadata, price, PDF URL, and seller reference |
-| **orders** | Stores purchase details including `orderNumber`, total price, and transaction ID |
-| **order_items** | Stores purchased note entries linked to an order |
-
-### Relationships
-
-- **User ↔ Role**: Many-to-Many
-- **User → Note**: One-to-Many (seller uploads)
-- **User → Order**: One-to-Many (buyer purchases)
-- **Order → OrderItem**: One-to-Many
-- **Note → OrderItem**: One-to-Many
-
----
-
-## 🔐 Authentication & Security
-
-| Feature | Detail |
-|---|---|
-| Spring Security | Route protection and role-based authorization |
-| BCrypt | Secure password hashing |
-| RBAC | Strict role-to-route mapping for Admin, Seller, Buyer |
-| Admin Protection | Admin cannot disable own account |
-| Custom Success Handler | Redirects each role to its respective dashboard after login |
-
----
-
-## 🌐 API Endpoints
-
-### Auth
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `POST /api/auth/logout`
-
-### Notes
-- `GET /api/buyer/notes`
-- `GET /api/buyer/notes/search?keyword=...`
-- `GET /api/buyer/notes/filter?category=...`
-- `GET /api/buyer/notes/{id}`
-- `POST /seller/notes/upload`
-- `PUT /seller/notes/{id}`
-- `DELETE /seller/notes/{id}`
-
-### Orders
-- `GET /api/buyer/my-orders`
-- `GET /api/buyer/my-downloads`
-- `POST /api/payment/success`
-
-### Admin
-- `GET /api/admin/users`
-- `DELETE /api/admin/users/{id}`
-- `PUT /api/admin/users/{id}/status`
-- `GET /api/admin/notes`
-- `DELETE /api/admin/notes/{id}`
-- `GET /api/admin/analytics`
-
-### Profile (all authenticated roles)
-- `GET /profile`
-- `POST /profile/update`
-
-For the complete route reference, see `API_ENDPOINTS.md`.
+- **User ↔ Role** (Many-to-Many): Users can have multiple roles (e.g., a user can be both Seller and Buyer)
+- **User → Note** (One-to-Many): A seller can upload multiple notes
+- **User → Order** (One-to-Many): A buyer can place multiple orders
+- **Order → OrderItem** (One-to-Many): An order can contain multiple purchased notes
+- **Note → OrderItem** (One-to-Many): A note can be purchased in multiple orders
 
 ---
 
-## 💳 Payment Integration
+## API Endpoints
 
-The project integrates **SSLCommerz** for online payment processing.
+### Authentication
 
-1. A buyer selects a note.
-2. The application creates a payment session via SSLCommerz API.
-3. The buyer is redirected to the payment gateway.
-4. On success, the application creates an order with a unique `orderNumber` and stores purchased note details.
-5. The buyer can then access and download the purchased note.
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| POST | `/api/auth/register` | Register new user | Public |
+| POST | `/api/auth/login` | Login user | Public |
+| POST | `/api/auth/logout` | Logout user | Authenticated |
+
+### Notes Management
+
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| GET | `/api/buyer/notes` | List all available notes | Buyer |
+| GET | `/api/buyer/notes/search?keyword=...` | Search notes by keyword | Buyer |
+| GET | `/api/buyer/notes/filter?category=...` | Filter notes by category | Buyer |
+| GET | `/api/buyer/notes/{id}` | Get note details | Buyer |
+| POST | `/seller/notes/upload` | Upload new note | Seller |
+| PUT | `/seller/notes/{id}` | Update note details | Seller |
+| DELETE | `/seller/notes/{id}` | Delete note | Seller |
+
+### Orders & Payments
+
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| GET | `/api/buyer/my-orders` | View order history | Buyer |
+| GET | `/api/buyer/my-downloads` | View purchased notes | Buyer |
+| POST | `/api/payment/initiate` | Initiate payment | Buyer |
+| POST | `/api/payment/success` | Payment success callback | SSLCommerz |
+| POST | `/api/payment/fail` | Payment failure callback | SSLCommerz |
+| POST | `/api/payment/cancel` | Payment cancellation callback | SSLCommerz |
+
+### Admin Operations
+
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| GET | `/api/admin/users` | List all users | Admin |
+| DELETE | `/api/admin/users/{id}` | Delete user | Admin |
+| PUT | `/api/admin/users/{id}/status` | Enable/disable user | Admin |
+| GET | `/api/admin/notes` | List all notes | Admin |
+| DELETE | `/api/admin/notes/{id}` | Delete note | Admin |
+| GET | `/api/admin/analytics` | View platform analytics | Admin |
+
+### Profile Management
+
+| Method | Endpoint | Description | Access |
+|--------|----------|-------------|--------|
+| GET | `/profile` | View profile | Authenticated |
+| POST | `/profile/update` | Update profile | Authenticated |
+
+For complete API documentation, see [API_ENDPOINTS.md](API_ENDPOINTS.md)
 
 ---
 
-## 🧪 Testing
+## Design Patterns
 
-### Tools
-- JUnit 5, Mockito, MockMvc, Spring Boot Test, H2 (test DB)
+The project implements several software engineering design patterns to ensure code quality, maintainability, and extensibility.
 
-### Coverage Areas
-- Service layer (Auth, Admin, Note, Order, Payment)
-- Controller integration tests (all major endpoints)
-- Repository query validation
-- End-to-end marketplace flow
+### 1. **Service Layer Pattern**
+
+**Purpose:** Separates business logic from controllers and persistence logic.
+
+**Implementation:**
+- `AuthService` — User authentication and registration
+- `NoteService` / `NoteServiceImpl` — Note management and search
+- `OrderService` / `OrderServiceImpl` — Order creation and retrieval
+- `PaymentService` / `PaymentServiceImpl` — Payment gateway integration
+
+**Benefits:**
+- Keeps controllers thin and focused on HTTP handling
+- Makes unit testing easier with mockable services
+- Centralizes business rules in one place
+
+### 2. **Repository Pattern**
+
+**Purpose:** Abstracts database access behind dedicated interfaces.
+
+**Implementation:**
+- `UserRepository`, `NoteRepository`, `OrderRepository`, `OrderItemRepository`, `RoleRepository`
+
+**Benefits:**
+- Reduces boilerplate persistence code
+- Keeps data access separate from business logic
+- Enables easy database switching
+
+### 3. **DTO (Data Transfer Object) Pattern**
+
+**Purpose:** Transfers only required data between layers without exposing entity internals.
+
+**Implementation:**
+- `NoteDto` — Clean note representation with sales count
+- `AuthResponse` — Authentication result with user details
+- `RegisterRequest`, `LoginRequest` — Input validation models
+- `PaymentRequest` — Payment initiation data
+- `AdminUserDto` — User management data
+
+**Benefits:**
+- Prevents direct entity exposure
+- Keeps API responses clean and predictable
+- Supports frontend-friendly payloads
+
+### 4. **MVC (Model-View-Controller) Pattern**
+
+**Purpose:** Separates business data, UI rendering, and request handling.
+
+**Implementation:**
+- **Model:** `User`, `Note`, `Order`, `OrderItem`, `Role`
+- **View:** Thymeleaf templates in `src/main/resources/templates`
+- **Controller:** `AuthController`, `BuyerController`, `SellerNoteController`, `PaymentController`, `AdminController`
+
+**Benefits:**
+- Clear separation of concerns
+- Easier frontend/backend collaboration
+- Simplified testing and maintenance
+
+### 5. **Strategy Pattern**
+
+**Purpose:** Encapsulates interchangeable behaviors behind a common interface.
+
+**Implementation:**
+- `PaymentServiceImpl` — Strategy-based payment session initialization
+- `NoteServiceImpl` — Strategy objects for different browse modes (all, search, filter)
+
+**Benefits:**
+- Supports multiple payment gateways without controller changes
+- Makes browse behavior extensible
+- Reduces conditional logic in services
+
+### 6. **Factory Pattern**
+
+**Purpose:** Centralizes object or strategy selection.
+
+**Implementation:**
+- Payment strategy selection in `PaymentServiceImpl`
+- Browse mode factory in `NoteServiceImpl`
+
+**Benefits:**
+- Keeps selection logic centralized
+- Improves code extensibility
+- Reduces coupling
+
+### 7. **Singleton Pattern (Spring Beans)**
+
+**Purpose:** Ensures one shared instance per application context.
+
+**Implementation:**
+- All Spring-managed beans (Controllers, Services, Repositories, Configuration classes)
+
+**Benefits:**
+- Memory efficiency
+- Consistent application-wide behavior
+- Simplified dependency injection
+
+---
+
+## Run Instructions
+
+### Prerequisites
+
+- **Java 17+**
+- **Maven 3.6+**
+- **PostgreSQL 16+** (or use Docker)
+- **Git**
+
+### Option 1: Run Locally (Without Docker)
+
+#### 1. Clone the Repository
+
+```bash
+git clone <repository-url>
+cd notes-marketplace
+```
+
+#### 2. Configure Database
+
+Create a PostgreSQL database:
+
+```sql
+CREATE DATABASE notesmarketplace;
+```
+
+#### 3. Configure Application Properties
+
+Create `src/main/resources/application.yaml`:
+
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/notesmarketplace
+    username: your_db_user
+    password: your_db_password
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+cloudinary:
+  cloud-name: your_cloudinary_cloud_name
+  api-key: your_cloudinary_api_key
+  api-secret: your_cloudinary_api_secret
+
+sslcommerz:
+  store-id: your_sslcommerz_store_id
+  store-password: your_sslcommerz_store_password
+  base-url: https://sandbox.sslcommerz.com
+  success-url: http://localhost:8080/api/payment/success
+  fail-url: http://localhost:8080/api/payment/fail
+  cancel-url: http://localhost:8080/api/payment/cancel
+```
+
+#### 4 Build the Project
+
+```bash
+./mvnw clean install
+```
+
+#### 5 Run Tests
 
 ```bash
 ./mvnw test
 ```
 
----
-
-## 🐳 Docker Setup
+#### 6 Start the Application
 
 ```bash
-docker compose up --build
+./mvnw spring-boot:run
 ```
 
-Starts **PostgreSQL 16** and the **Spring Boot app** on port `8080`.
+#### 7 Access the Application
 
-### Required `.env` Variables
+Open your browser and navigate to: **http://localhost:8080**
+
+**Default Admin Credentials:**
+- Email: `admin@gmail.com`
+- Password: `admin123`
+
+---
+
+### Option 2: Run with Docker Compose (Recommended)
+
+#### 1 Clone the Repository
+
+```bash
+git clone <repository-url>
+cd notes-marketplace
+```
+
+#### 2 Create `.env` File
+
+Create a `.env` file in the project root:
 
 ```env
+# Database
+POSTGRES_USER=notesuser
+POSTGRES_PASSWORD=notespass
+POSTGRES_DB=notesmarketplace
 SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/notesmarketplace
-SPRING_DATASOURCE_USERNAME=your_db_user
-SPRING_DATASOURCE_PASSWORD=your_db_password
-CLOUDINARY_CLOUD_NAME=...
-CLOUDINARY_API_KEY=...
-CLOUDINARY_API_SECRET=...
-SSLCOMMERZ_STORE_ID=...
-SSLCOMMERZ_STORE_PASSWORD=...
+SPRING_DATASOURCE_USERNAME=notesuser
+SPRING_DATASOURCE_PASSWORD=notespass
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+
+# SSLCommerz
+SSLCOMMERZ_STORE_ID=your_sslcommerz_store_id
+SSLCOMMERZ_STORE_PASSWORD=your_sslcommerz_store_password
 SSLCOMMERZ_BASE_URL=https://sandbox.sslcommerz.com
 SSLCOMMERZ_SUCCESS_URL=http://localhost:8080/api/payment/success
 SSLCOMMERZ_FAIL_URL=http://localhost:8080/api/payment/fail
 SSLCOMMERZ_CANCEL_URL=http://localhost:8080/api/payment/cancel
 ```
 
----
-
-## 🚀 Tech Stack
-
-| Category | Technology |
-|---|---|
-| Backend | Spring Boot 4, Spring MVC, Spring Data JPA, Spring Security |
-| Frontend | Thymeleaf, Bootstrap 5, HTML, CSS, JavaScript |
-| Database | PostgreSQL 16 |
-| Testing | JUnit 5, Mockito, MockMvc, H2 |
-| Payment | SSLCommerz |
-| File Storage | Cloudinary |
-| DevOps | Docker, Docker Compose, Maven |
-
----
-
-## 🔑 Demo Credentials
-
-After starting the application, a default admin account is automatically created:
-
-| Field | Value |
-|---|---|
-| **Role** | Admin |
-| **Email** | `admin@gmail.com` |
-| **Password** | `admin123` |
-
-> You can register Buyer and Seller accounts through the `/register` page.
-
----
-
-## 📂 Project Highlights
-
-- Role-based dashboards for Admin, Seller, and Buyer
-- Secure login and registration with BCrypt
-- Upload, browse, buy, and download notes
-- SSLCommerz payment gateway integration
-- Sales analytics with revenue charts
-- Human-readable order numbers (`ORD-0001`, `ORD-0002`, ...)
-- Full profile editing for all roles
-- Admin self-disable protection
-- DTO-based API responses
-- Unit and integration test coverage
-- Dockerized deployment support
-
----
-
-## 🎓 Academic Value
-
-This project demonstrates practical application of:
-
-- Software design patterns (Service Layer, Repository, Strategy, MVC)
-- Layered system architecture
-- Secure full-stack web development
-- REST API design
-- Payment gateway integration
-- Automated testing and verification
-- Containerized deployment
-
-Suitable for **university project evaluation**, **software engineering coursework**, and **GitHub portfolio presentation**.
-
-
----
-
-## 📌 Project Description
-
-Digital Notes Marketplace is a full-stack web application designed to help students share and monetize academic resources in a structured and secure way. The platform allows users to upload notes, explore available study materials, purchase premium content, and download notes after successful payment.
-
-The system is built around a role-based access model:
-
-- **Admin** manages users, platform oversight, and administrative operations.
-- **Seller** uploads notes, manages note listings, and monitors note sales.
-- **Buyer** browses notes, places orders, completes payments, and downloads purchased notes.
-
-The project is suitable for both academic evaluation and professional portfolio presentation because it combines layered backend design, security, payment integration, testing, and containerized deployment.
-
----
-
-## 🏗️ Architecture Overview
-
-The application follows a **layered architecture** to keep responsibilities clean, maintainable, and testable.
-
-### Core Layers
-
-| Layer | Responsibility |
-|---|---|
-| **Controller** | Accepts HTTP requests, validates incoming data, returns views or API responses |
-| **Service** | Contains business logic such as authentication, note management, payments, and order processing |
-| **Repository** | Communicates with the database using Spring Data JPA |
-| **Model** | Represents persistent domain entities such as `User`, `Note`, `Order`, and `Role` |
-| **DTO** | Transfers structured data between backend layers and frontend/API consumers |
-
-### Request Flow
-
-```text
-User → Controller → Service → Repository → Database
-```
-
-### Example Flow
-
-When a buyer requests available notes:
-
-1. The **Buyer Controller** receives the request.
-2. The **Note Service** applies business rules, search/filter logic, and DTO mapping.
-3. The **Note Repository** fetches note data from the database.
-4. The service maps `Note` entities into `NoteDto` responses.
-5. The response is returned to the frontend for rendering.
-
-This separation improves readability, testing, and future scalability.
-
----
-
-## 🧠 Design Patterns Used
-
-The project applies several important software engineering patterns to keep the code organized and extensible.
-
-### 1. Service Layer Pattern
-
-**What it is:**
-The Service Layer Pattern isolates business logic from controllers and persistence logic.
-
-**Where used:**
-- `AuthService`
-- `NoteService` / `NoteServiceImpl`
-- `OrderService` / `OrderServiceImpl`
-- `PaymentService` / `PaymentServiceImpl`
-
-**Why used:**
-It keeps controllers thin, makes unit testing easier, and centralizes application rules in one place.
-
-### 2. Repository Pattern
-
-**What it is:**
-The Repository Pattern abstracts database access behind dedicated interfaces.
-
-**Where used:**
-- `UserRepository`
-- `NoteRepository`
-- `OrderRepository`
-- `OrderItemRepository`
-- `RoleRepository`
-
-**Why used:**
-It reduces boilerplate persistence code and keeps data access separate from business logic.
-
-### 3. DTO Pattern
-
-**What it is:**
-The DTO Pattern uses dedicated data objects to transfer only the data required by the client.
-
-**Where used:**
-- `NoteDto`
-- `AuthResponse`
-- `RegisterRequest`
-- `LoginRequest`
-- `PaymentRequest`
-
-**Why used:**
-It prevents direct exposure of entity internals, keeps API responses clean, and supports frontend-friendly payloads such as note sales count.
-
-### 4. MVC Pattern
-
-**What it is:**
-Model-View-Controller separates business data, UI rendering, and request handling.
-
-**Where used:**
-- **Model:** `User`, `Note`, `Order`, `OrderItem`, `Role`
-- **View:** Thymeleaf templates under `src/main/resources/templates`
-- **Controller:** `AuthController`, `BuyerController`, `SellerNoteController`, `PaymentController`, `WebController`
-
-**Why used:**
-It keeps the frontend and backend responsibilities well organized and easier to maintain.
-
-### 5. Singleton Pattern (Spring Beans)
-
-**What it is:**
-In Spring, beans are singleton by default, meaning one shared instance is managed by the container.
-
-**Where used:**
-- Controllers
-- Services
-- Repositories
-- Security configuration classes
-
-**Why used:**
-It improves memory efficiency, supports dependency injection, and provides consistent application-wide behavior.
-
-### 6. Factory Pattern
-
-**What it is:**
-The Factory Pattern centralizes object or strategy selection instead of scattering conditional logic across the codebase.
-
-**Where used:**
-- `PaymentServiceImpl` uses a registry-backed factory to select payment strategy behavior.
-- `NoteServiceImpl` uses a factory-like registry for browse modes such as all, search, and filter.
-
-**Why used:**
-It improves extensibility and keeps selection logic centralized and clean.
-
-### 7. Strategy Pattern (SSLCommerz Payment)
-
-**What it is:**
-The Strategy Pattern encapsulates interchangeable behaviors behind a common contract.
-
-**Where used:**
-- `PaymentServiceImpl` applies strategy-based payment session initialization logic.
-- `NoteServiceImpl` applies strategy objects for browsing notes in different modes.
-
-**Why used:**
-It allows the system to support different payment or browsing behaviors without changing controller code or duplicating logic.
-
----
-
-## 🗄️ Database Design
-
-The project uses a relational database with entity relationships mapped through JPA/Hibernate.
-
-### Main Tables
-
-| Table | Purpose |
-|---|---|
-| **User** | Stores user profile, email, password, and account state |
-| **Role** | Stores role definitions such as `ADMIN`, `SELLER`, `BUYER` |
-| **Note** | Stores note title, description, price, file URL, preview URL, and seller |
-| **Order** | Stores purchase transaction details including total price and transaction ID |
-| **OrderItem** | Stores purchased note entries linked to an order |
-
-### Relationships
-
-- **User ↔ Role**: Many-to-Many  
-  A user can have one or more roles, and a role can belong to many users.
-
-- **User → Note**: One-to-Many  
-  One seller can upload many notes.
-
-- **User → Order**: One-to-Many  
-  One buyer can place many orders.
-
-- **Order → OrderItem**: One-to-Many  
-  One order can contain one or more items.
-
-- **Note → OrderItem**: One-to-Many  
-  One note can appear in many order items over time.
-
-### Conceptual Flow
-
-```text
-User (Seller) ──< Note
-User (Buyer)  ──< Order ──< OrderItem >── Note
-User >──< Role
-```
-
----
-
-## 🔐 Authentication & Security
-
-Security is implemented using **Spring Security** with form login and role-based authorization.
-
-### Security Features
-
-- **Spring Security** protects routes and enforces role-based access.
-- **BCrypt password encryption** is used for secure password storage.
-- **Role-based access control** restricts pages and APIs for Admin, Seller, and Buyer users.
-- **Custom login success handling** redirects users to the correct dashboard based on role.
-
-### Access Model
-
-| Role | Access |
-|---|---|
-| **Admin** | Admin dashboard and administrative APIs |
-| **Seller** | Note upload, note management, seller dashboard |
-| **Buyer** | Note browsing, ordering, payments, downloads |
-
-This design ensures that each user only interacts with the features relevant to their role.
-
----
-
-## 🌐 API Endpoints
-
-Below is a simplified overview of the main application APIs.
-
-### Auth
-
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `POST /api/auth/logout`
-
-### Notes
-
-Core note-related endpoints in the current implementation:
-
-- `GET /api/buyer/notes`
-- `GET /api/buyer/notes/search?keyword=...`
-- `GET /api/buyer/notes/filter?category=...`
-- `GET /api/buyer/notes/{id}`
-- `POST /seller/notes/upload`
-- `PUT /seller/notes/{id}`
-- `DELETE /seller/notes/{id}`
-
-If documented in abstract CRUD form, these correspond conceptually to:
-
-- `GET /api/notes`
-- `POST /api/notes`
-- `PUT /api/notes/{id}`
-- `DELETE /api/notes/{id}`
-
-### Orders
-
-The project handles order information primarily through buyer and payment flows:
-
-- `GET /api/buyer/my-orders`
-- `GET /api/buyer/my-downloads`
-- `POST /api/payment/success`
-
-Conceptually, these align with:
-
-- `POST /api/orders`
-- `GET /api/orders/{id}`
-
-### Admin
-
-Current implementation includes admin dashboard and admin APIs such as user and note management under:
-
-- `GET /api/admin/users`
-- `DELETE /api/admin/users/{id}`
-
-For a complete route list, see `API_ENDPOINTS.md`.
-
----
-
-## 💳 Payment Integration
-
-The project integrates **SSLCommerz** for online payment processing.
-
-### How It Works
-
-1. A buyer selects a note.
-2. The application creates a payment session.
-3. The buyer is redirected to the SSLCommerz gateway.
-4. On successful payment, the application creates an order and stores purchased note details.
-5. The buyer can then access and download the purchased note.
-
-### Strategy Pattern Usage
-
-Payment behavior is organized with the **Strategy Pattern**, which makes the payment flow easier to extend in the future if another gateway is introduced.
-
-### Why This Design Matters
-
-- Keeps payment code isolated from unrelated business logic
-- Makes the integration easier to test
-- Supports future gateway expansion with minimal controller changes
-
----
-
-## 🧪 Testing
-
-The project includes both **unit tests** and **integration tests**.
-
-### Unit Tests
-
-Focus areas:
-
-- Service layer business logic
-- Authentication logic
-- Note sales-count logic
-- Order creation and purchased-note retrieval
-- Payment service behavior with external gateway calls mocked
-
-### Integration Tests
-
-Focus areas:
-
-- Controller endpoints with `MockMvc`
-- Authentication request/response flow
-- Seller and buyer endpoints
-- Payment success callback and persisted order creation
-- Repository query validation for note sales count
-
-### Tools Used
-
-- **JUnit 5**
-- **Mockito**
-- **MockMvc**
-- **Spring Boot Test**
-- **H2 Database** for test environment
-
-### Current Status
-
-The project test suite passes successfully with:
-
-```bash
-./mvnw test
-```
-
----
-
-## 🐳 Docker Setup
-
-The project includes both a `Dockerfile` and `docker-compose.yml` for containerized execution.
-
-### Run with Docker Compose
+#### 3 Start Services
 
 ```bash
 docker compose up --build
 ```
 
-### What This Starts
+This will:
+- Start PostgreSQL 16 on port `5432`
+- Build and start the Spring Boot application on port `8080`
+- Automatically run database migrations
 
-- **PostgreSQL 16** container for persistent database storage
-- **Spring Boot application** container on port `8080`
+#### 4 Access the Application
 
-### Required Environment Variables
+Open your browser and navigate to: **http://localhost:8080**
 
-Make sure your `.env` file provides:
+#### 5 Stop Services
 
-- `POSTGRES_USER`
-- `POSTGRES_PASSWORD`
-- `POSTGRES_DB`
-
-### Default Ports
-
-| Service | Port |
-|---|---|
-| Spring Boot App | `8080` |
-| PostgreSQL | `5432` |
+```bash
+docker compose down
+```
 
 ---
 
-## 🚀 Tech Stack
+## CI/CD Pipeline
+
+### Current Implementation Status
+
+The project is **CI/CD ready** and can be integrated with popular platforms like **GitHub Actions**, **GitLab CI**, or **Jenkins**.
+
+### Recommended CI/CD Workflow
+
+```mermaid
+graph LR
+    A[Code Push] --> B[Build]
+    B --> C[Unit Tests]
+    C --> D[Integration Tests]
+    D --> E[Code Quality Check]
+    E --> F[Build Docker Image]
+    F --> G[Push to Registry]
+    G --> H[Deploy to Staging]
+    H --> I[Deploy to Production]
+    
+    style A fill:#e1f5ff
+    style B fill:#fff4e1
+    style C fill:#e8f5e9
+    style D fill:#e8f5e9
+    style E fill:#f3e5f5
+    style F fill:#fff9c4
+    style G fill:#ffebee
+    style H fill:#e0f2f1
+    style I fill:#c8e6c9
+```
+
+### Sample GitHub Actions Workflow
+
+Create `.github/workflows/ci-cd.yml`:
+
+```yaml
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+    
+    - name: Build with Maven
+      run: ./mvnw clean install -DskipTests
+    
+    - name: Run Tests
+      run: ./mvnw test
+      env:
+        SPRING_PROFILES_ACTIVE: test
+    
+    - name: Generate Test Report
+      if: always()
+      uses: dorny/test-reporter@v1
+      with:
+        name: Maven Tests
+        path: target/surefire-reports/*.xml
+        reporter: java-junit
+    
+    - name: Build Docker Image
+      if: github.ref == 'refs/heads/main'
+      run: docker build -t notes-marketplace:${{ github.sha }} .
+    
+    - name: Push to Docker Registry
+      if: github.ref == 'refs/heads/main'
+      run: |
+        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+        docker push notes-marketplace:${{ github.sha }}
+```
+
+### CI/CD Best Practices Implemented
+
+- **Automated Testing** — JUnit 5 + Mockito integration tests  
+- **Test Coverage** — Unit and integration test suites  
+- **Dockerization** — Multi-stage Dockerfile for optimized builds  
+- **Environment Configuration** — Externalized configuration via `.env`  
+- **Database Migrations** — Hibernate auto-update in development, manual migrations recommended for production  
+- **Health Checks** — Spring Boot Actuator endpoints available  
+
+### Production Deployment Considerations
+
+- Use managed database services (AWS RDS, Azure Database for PostgreSQL)
+- Store secrets in secure vaults (AWS Secrets Manager, HashiCorp Vault)
+- Implement blue-green or canary deployment strategies
+- Set up monitoring and alerting (Prometheus, Grafana, ELK Stack)
+- Configure auto-scaling based on load
+- Use SSL/TLS certificates for HTTPS
+- Implement rate limiting and DDoS protection
+
+---
+
+## Tech Stack
 
 | Category | Technology |
-|---|---|
-| Backend | Spring Boot, Spring MVC, Spring Data JPA, Spring Security |
-| Frontend | Thymeleaf, HTML, CSS, Bootstrap, JavaScript |
-| Database | PostgreSQL |
-| Testing | JUnit 5, Mockito, MockMvc, H2 |
-| Payment | SSLCommerz |
-| DevOps | Docker, Docker Compose, Maven |
+|----------|-----------|
+| **Backend** | Spring Boot 4, Spring MVC, Spring Data JPA, Spring Security |
+| **Frontend** | Thymeleaf, Bootstrap 5, HTML, CSS, JavaScript |
+| **Database** | PostgreSQL 16 |
+| **Testing** | JUnit 5, Mockito, MockMvc, Spring Boot Test, H2 (test DB) |
+| **Payment** | SSLCommerz Payment Gateway |
+| **File Storage** | Cloudinary |
+| **Containerization** | Docker, Docker Compose |
+| **Build Tool** | Maven |
+| **Java Version** | Java 17 |
 
 ---
 
-## 📂 Project Highlights
+## Additional Resources
 
-- Role-based dashboards for Admin, Seller, and Buyer
-- Secure login and registration system
-- Upload, browse, buy, and download notes
-- Payment gateway integration using SSLCommerz
-- Sales analytics with note purchase count
-- DTO-based API responses
-- Tested backend with unit and integration coverage
-- Dockerized deployment support
+- **API Documentation:** [API_ENDPOINTS.md](API_ENDPOINTS.md)
+- **Database Schema:** See [tables.txt](tables.txt)
+- **Docker Setup:** [docker-compose.yml](docker-compose.yml)
 
 ---
 
-## 🎓 Academic Value
+## Academic Value
 
 This project demonstrates practical application of:
 
-- Software design patterns
-- Layered system architecture
-- Secure full-stack web development
-- REST API design
-- Payment gateway integration
-- Automated testing and verification
-- Containerized deployment
+- Software design patterns (Service Layer, Repository, Strategy, MVC, Factory, Singleton)
+- Layered system architecture with clear separation of concerns
+- Secure full-stack web development with Spring Security and BCrypt
+- RESTful API design following best practices
+- Third-party payment gateway integration (SSLCommerz)
+- Comprehensive automated testing and verification
+- Containerized deployment with Docker
+- Role-based access control (RBAC)
+- Database relationship modeling and JPA/Hibernate usage
+---
 
-It is well suited for **university project evaluation**, **software engineering coursework**, and **GitHub portfolio presentation**.
+## Support
+
+For questions or issues, please contact the project authors or create an issue in the repository.
 
 ---
 
-## 📬 Closing Note
+**Thank You for visiting this project repository.**
 
-Digital Notes Marketplace is a strong example of how modern Spring Boot applications can combine security, clean architecture, real-world business flow, and maintainable testing in a student-focused product.
+---
 
-If you want, I can also generate:
-
-1. a shorter GitHub-style README version,
-2. a version with screenshots/placeholders,
-3. or a README with installation and local setup commands added in more detail.
