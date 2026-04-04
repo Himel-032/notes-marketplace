@@ -1,13 +1,15 @@
 package com.notes.notesmarketplace.service.impl;
 
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
-import com.notes.notesmarketplace.service.CloudinaryService;
-import lombok.RequiredArgsConstructor;
+import java.util.Map;
+
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Map;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
+import com.notes.notesmarketplace.service.CloudinaryService;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -59,7 +61,7 @@ public class CloudinaryServiceImpl implements CloudinaryService {
         try {
             // Extract the public_id from Cloudinary URL
             // Example: https://res.cloudinary.com/xxx/raw/upload/v123456789/notes_pdf/filename.pdf
-            // We need: notes_pdf/filename
+            
 
             int uploadIndex = url.indexOf("/upload/");
             if (uploadIndex == -1) {
