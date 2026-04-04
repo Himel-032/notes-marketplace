@@ -182,9 +182,9 @@ public class PaymentServiceImpl implements PaymentService {
             params.add("currency", "BDT");
             params.add("tran_id", paymentGatewayContext.getTransactionId());
 
-            params.add("success_url", "https://notes-marketplace.onrender.com/api/payment/success");
-            params.add("fail_url", "https://notes-marketplace.onrender.com/api/payment/fail");
-            params.add("cancel_url", "https://notes-marketplace.onrender.com/api/payment/cancel");
+            params.add("success_url", "http://localhost:8080/api/payment/success");
+            params.add("fail_url", "http://localhost:8080/api/payment/fail");
+            params.add("cancel_url", "http://localhost:8080/api/payment/cancel");
 
             params.add("product_name", paymentGatewayContext.getNote().getTitle());
             params.add("product_category", paymentGatewayContext.getNote().getCategory());
