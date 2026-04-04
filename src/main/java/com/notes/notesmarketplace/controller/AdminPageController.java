@@ -138,7 +138,7 @@ public class AdminPageController {
                 .filter(note -> matchesNoteQuery(note, q))
                 .toList();
 
-        model.addAttribute("activePage", "notes");
+        model.addAttribute("activePage", "notes");   // Set active page for sidebar highlighting
         model.addAttribute("pageTitle", "Notes Management");
         model.addAttribute("notes", notes);
         model.addAttribute("q", q);
