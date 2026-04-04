@@ -64,7 +64,7 @@ public class WebController {
                 return "auth/register";
             }
 
-            // Find role
+            // Find role entity
             Role userRole = roleRepository.findByRoleName(role)
                     .orElseThrow(() -> new RuntimeException("Role not found: " + role));
 
