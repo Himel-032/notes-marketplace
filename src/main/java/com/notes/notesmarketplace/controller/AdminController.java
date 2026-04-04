@@ -64,7 +64,7 @@ public class AdminController {
         adminService.deleteNote(id);
     }
 
-    @GetMapping("/analytics")
+    @GetMapping("/analytics") // Admin dashboard analytics endpoint
     @PreAuthorize("hasRole('ADMIN')")
     public AdminAnalyticsDto getAnalytics() {
         return adminService.getAnalytics();
