@@ -2,7 +2,7 @@ name: Spring Boot Application CI/CD
 
 on:
   push:
-    branches: [ "main", "dev", "feature/ci-cd" ]
+    branches: [ "main", "dev", "feature/ci-cd", "feature/final-check" ]
   pull_request:
     branches: [ "main" ]
 
